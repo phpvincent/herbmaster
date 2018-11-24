@@ -16,3 +16,10 @@ use Illuminate\Http\Request;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+Route::namespace('Home')->group(function(){
+    Route::post('login','LoginController@login');
+});
+
+Route::middleware(['admin_refresh','log'])->namespace('Home')->group(function(){
+        Route::post('profile','UserController@profile');
+});
