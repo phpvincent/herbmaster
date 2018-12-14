@@ -63,5 +63,6 @@ class Kernel extends HttpKernel
         'cors' => \App\Http\Middleware\CrossHttp::class,
         'log' => \App\Http\Middleware\SqlLogMiddleware::class,
         'admin_refresh' => \App\Http\Middleware\AdminRefreshToken::class,
+        'CheckRequestMethoud' => \App\Http\Middleware\CheckRequestMethoud::class,
     ];
 }
