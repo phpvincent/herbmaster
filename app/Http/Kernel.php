@@ -43,6 +43,12 @@ class Kernel extends HttpKernel
             'bindings',
             'cors'
         ],
+
+        'admin' => [
+            'throttle:60,1',
+            'bindings',
+            'cors'
+        ],
     ];
 
     /**
@@ -61,5 +67,8 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'refresh' => \App\Http\Middleware\RefreshToken::class,
         'cors' => \App\Http\Middleware\CrossHttp::class,
+        'log' => \App\Http\Middleware\SqlLogMiddleware::class,
+        'admin_refresh' => \App\Http\Middleware\AdminRefreshToken::class,
+        'CheckRequestMethoud' => \App\Http\Middleware\CheckRequestMethoud::class,
     ];
 }
