@@ -26,7 +26,14 @@ class AdminRefreshToken extends BaseMiddleware
             throw new UnauthorizedHttpException('jwt-auth', 'Token not provided');
         }
         // 检测用户的登录状态，如果正常则通过
-        if (Auth::guard('admin')->check($authToken)) {
+        if ($user=Auth::guard('admin')->check($authToken)) {
+            if($user->admin_method!=1){
+                //在只读权限下进行的写操作
+                $request_method = $request->getMethod();
+                    if(!in_array($request_method, ['get','post'])){
+                        return code_response(10003,'Request Methoud not allow',405);
+                    }
+            }
             return $next($request);
         }
         // 使用 try 包裹，以捕捉 token 过期所抛出的 TokenExpiredException  异常
