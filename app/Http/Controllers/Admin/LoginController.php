@@ -25,21 +25,19 @@ class LoginController extends Controller
      */
     public function login(Request $request)
     {
-        //验证操作
-//        if (!captcha_api_check($request->captcha, $request->catKey)){
-//            return response()->json(['status_code' => 400, 'message' => '验证码不匹配' ]);
-//        }
+        //验证图片操作
+        if (!captcha_api_check($request->captcha, $request->catKey)){
+            return response()->json(['status_code' => 400, 'message' => '验证码不匹配' ]);
+        }
 
         $input = $request->except(['captcha','catKey']);
 
         if(!$token = Auth::guard('admin')->attempt($input)){
-            return response()->json(['status'=>'0','message' => '账号或密码错误.']);
+            return code_response('10004','账号或密码错误');
         };
 
-        $user = Admin::where('username',$input['username'])->first();
+        $data['token'] = 'Bearer '. $token;
 
-
-
-        return response()->json(['status'=>'1','token' =>'Bearer '. $token]);
+        return code_response('10','登陆成功','200',$data);
     }
 }

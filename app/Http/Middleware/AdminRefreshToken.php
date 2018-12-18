@@ -88,7 +88,8 @@ class AdminRefreshToken extends BaseMiddleware
         // 检查此次请求中是否带有 token，如果没有则抛出异常。
         $authToken = Auth::guard('admin')->getToken();
         if(!$authToken){
-            throw new UnauthorizedHttpException('jwt-auth', 'Token not provided');
+//            throw new UnauthorizedHttpException('jwt-auth', 'Token not provided');
+            return code_response(10001, 'Token not provided', 401);
         }
 
         // 检测用户的登录状态，如果正常则通过
@@ -109,15 +110,9 @@ class AdminRefreshToken extends BaseMiddleware
         if($token = Auth::guard('admin')->refresh()){
             $request->headers->set('Authorization', 'Bearer '.$token);
             \Log::info('刷新token，用户ID'.$admin_id = Auth::guard('admin')->payload()['sub']);
+        }else{
+            return code_response(10001, 'The token has been blacklisted', 401);
         }
-
-//        // 使用 try 包裹，以捕捉 token 过期所抛出的 TokenExpiredException  异常
-//        try {
-//
-//        } catch (JWTException $exception) {
-//            // 如果捕获到此异常，即代表 refresh 也过期了，用户无法刷新令牌，需要重新登录。
-//            throw new UnauthorizedHttpException('jwt-auth', $exception->getMessage());
-//        }
 
         // 在响应头中返回新的 token
         $respone = $next($request);

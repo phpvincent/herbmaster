@@ -180,6 +180,8 @@ return [
         Tymon\JWTAuth\Providers\LaravelServiceProvider::class,
         //图片验证码
         \Mews\Captcha\CaptchaServiceProvider::class,
+        //RBAC
+        Zizaco\Entrust\EntrustServiceProvider::class,
 
     ],
 
@@ -232,7 +234,7 @@ return [
         'JWTAuth' => Tymon\JWTAuth\Facades\JWTAuth::class,
         'JWTFactory' => Tymon\JWTAuth\Facades\JWTFactory::class,
         'Captcha' => Mews\Captcha\Facades\Captcha::class,
-
+        'Entrust' => Zizaco\Entrust\EntrustFacade::class,
     ],
 
 ];
