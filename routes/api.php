@@ -20,7 +20,7 @@ Route::namespace('Home')->group(function(){
     Route::post('login','LoginController@login');
 });
 
-Route::middleware(['admin_refresh','log'])->namespace('Home')->group(function(){
+Route::middleware(['refresh','log'])->namespace('Home')->group(function(){
         Route::post('profile','UserController@profile');
         Route::any('test','UserController@profile');
 });

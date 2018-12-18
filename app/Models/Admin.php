@@ -8,7 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class Admin extends Authenticatable implements JWTSubject
 {
-    protected $primaryKey ='admin_id';
+    protected $primaryKey ='id';
     public $timestamps=false;
     use Notifiable;
 
@@ -32,9 +32,9 @@ class Admin extends Authenticatable implements JWTSubject
         return [];
     }
 
-    public function getAuthIdentifierName()
-    {
-        return 'admin_id';
-    }
+//    public function getAuthIdentifierName()
+//    {
+//        return 'id';
+//    }
 
 }

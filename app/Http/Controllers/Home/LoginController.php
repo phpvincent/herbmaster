@@ -15,7 +15,7 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         $input = $request->all();
-        if(!$token = auth()->guard('admin')->attempt($input)){
+        if(!$token = Auth::guard('api')->attempt($input)){
             return response()->json(['status'=>'0','message' => '邮箱或密码错误.']);
         };
         return response()->json(['status'=>'1','token' =>'Bearer '. $token]);

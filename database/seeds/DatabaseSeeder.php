@@ -11,13 +11,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        //新增超级管理员组
+        // 新增超级管理员组
         DB::table('admin_group')->insert([
             'group_name' => '超级管理员',
             'group_rule'=> '0',
         ]);
 
-        //新增超级管理员
+        // 新增超级管理员
         DB::table('admins')->insert([
             'username' => 'root',
             'password'=> bcrypt('123456'),

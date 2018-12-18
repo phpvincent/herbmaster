@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin;
 use Illuminate\Http\Request;
 use Auth;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class LoginController extends Controller
 {
@@ -23,16 +25,21 @@ class LoginController extends Controller
      */
     public function login(Request $request)
     {
-        $input = $request->all();
-        if(!$token = auth()->guard('admin')->attempt($input)){
-            return response()->json(['status'=>'0','message' => '邮箱或密码错误.']);
-        };
-//        $user = Admin::where('admin_name','zhangsan')->first();
-//        if(Hash::check($request->input('password'),$user->password)){
-//            $token = $this->auth->fromUser($user);
-//        }else{
-//            return response()->json(['status'=>'0','message' => '登陆失败']);
+        //验证操作
+//        if (!captcha_api_check($request->captcha, $request->catKey)){
+//            return response()->json(['status_code' => 400, 'message' => '验证码不匹配' ]);
 //        }
+
+        $input = $request->except(['captcha','catKey']);
+
+        if(!$token = Auth::guard('admin')->attempt($input)){
+            return response()->json(['status'=>'0','message' => '账号或密码错误.']);
+        };
+
+        $user = Admin::where('username',$input['username'])->first();
+
+
+
         return response()->json(['status'=>'1','token' =>'Bearer '. $token]);
     }
 }

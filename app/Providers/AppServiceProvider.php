@@ -27,7 +27,7 @@ class AppServiceProvider extends ServiceProvider
         date_default_timezone_set('PRC');
         Schema::defaultStringLength(191);
         //记录sql语句
-         /*\DB::listen(
+         \DB::listen(
              function ($sql) {
                  // $sql is an object with the properties:
                  //  sql: The query
@@ -60,6 +60,6 @@ class AppServiceProvider extends ServiceProvider
                  fwrite($logFile, date('Y-m-d H:i:s') . ': ' . $query . PHP_EOL);
                  fclose($logFile);
              }
-         );*/
+         );
     }
 }
