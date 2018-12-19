@@ -104,7 +104,7 @@ class AdminRefreshToken extends BaseMiddleware
                 $request_method = $request->getMethod();
                 if ($request_method!='get') {
                     if($request_method=='post'){
-                        $request->has('forread')? : return code_response(10003, 'Request Methoud not allow', 405);
+                       if(!$request->has('forread')) return code_response(10003, 'Request Methoud not allow', 405);
                     }else{
                         return code_response(10003, 'Request Methoud not allow', 405);
                     }
