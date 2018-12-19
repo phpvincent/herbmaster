@@ -88,14 +88,17 @@ class AdminRefreshToken extends BaseMiddleware
         // 检查此次请求中是否带有 token，如果没有则抛出异常。
         $authToken = Auth::guard('admin')->getToken();
         if(!$authToken){
-//            throw new UnauthorizedHttpException('jwt-auth', 'Token not provided');
             return code_response(10001, 'Token not provided', 401);
         }
 
         // 检测用户的登录状态，如果正常则通过
         if (Auth::guard('admin')->check()) {
             $admin_id = Auth::guard('admin')->payload()['sub'];
+            $time = Auth::guard('admin')->payload()['exp'];
             $user = Admin::where('id', $admin_id)->first();
+
+            //==========================================================================================================
+            //判断用户操作权限
             if ($user && $user->admin_method != 1) {
                 //在只读权限下进行的写操作
                 $request_method = $request->getMethod();
@@ -104,21 +107,31 @@ class AdminRefreshToken extends BaseMiddleware
                 }
             }
 
+            //设置用户请求参数
+            $request->user_info = $user;
+
+            //==============================================================================================================
+            //刷新Token
+            if(($time - time()) < 10*60 && ($time - time()) > 0){
+                $token = Auth::guard('admin')->refresh();
+                if(!$token){
+                    $request->headers->set('Authorization', 'Bearer '.$token);
+                }else{
+                    return code_response(10001, 'The token has been blacklisted', 401);
+                }
+
+                // 在响应头中返回新的 token
+                $respone = $next($request);
+                if(isset($token) && $token){
+                    $respone->headers->set('Authorization', 'Bearer '.$token);
+                }
+                return $respone;
+            }
+
+            //token通过验证 执行下一补操作
             return $next($request);
         }
 
-        if($token = Auth::guard('admin')->refresh()){
-            $request->headers->set('Authorization', 'Bearer '.$token);
-            \Log::info('刷新token，用户ID'.$admin_id = Auth::guard('admin')->payload()['sub']);
-        }else{
-            return code_response(10001, 'The token has been blacklisted', 401);
-        }
-
-        // 在响应头中返回新的 token
-        $respone = $next($request);
-        if(isset($token) && $token){
-            $respone->headers->set('Authorization', 'Bearer '.$token);
-        }
-        return $respone;
+        return code_response(10001, 'The token has been blacklisted', 401);
     }
 }

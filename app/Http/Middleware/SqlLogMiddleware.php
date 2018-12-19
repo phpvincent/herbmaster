@@ -19,19 +19,10 @@ class SqlLogMiddleware extends BaseMiddleware
      */
     public function handle($request, Closure $next)
     {
-        $admin_user = Auth::guard('admin')->getPayload();
-        log::info('111111111111'.$admin_user);
-        if($admin_user){
-            $admin = Admin::where('id',$admin_user['sub'])->first();
-            if($admin){
-                $admin_name = $admin->show_name ? $admin->show_name : $admin->username;
-            }else{
-                $admin_name = '游客';
-            }
-        }else{
-            $admin_name = '游客';
-        }
-        Log::info($admin_name);
+        //获取用户信息
+        $data = $request->user_info;
+        $admin_user =  $data->show_name ? $data->show_name : $data->username;
+
         //记录sql语句
         \DB::listen(
             function ($sql) use ($request,$admin_user) {
