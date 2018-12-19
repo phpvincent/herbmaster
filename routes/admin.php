@@ -10,6 +10,7 @@ Route::namespace('Admin')->group(function(){
 
     Route::middleware(['admin_refresh','log'])->group(function(){
         Route::post('user/user_info','UserController@userInfo');
+        Route::put('resource/upload','ResourcesController@upload');
     });
 });
 
