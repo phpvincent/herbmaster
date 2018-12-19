@@ -25,9 +25,14 @@ class RoleController extends Controller
      */
     public function add(Request $request)
     {
+        $role_name = $request->input('role_name');
+        if(!trim($role_name)){
+            return code_response(20000,'请填写角色名称');
+        }
+
         //1.角色名称不可重复
-        $role = Role::where('name',$request->input('role_name'))->first();
-        if(!$role){
+        $role = Role::where('name',$role_name)->first();
+        if($role){
             return code_response(20001,'角色名称已存在');
         }
 
@@ -50,9 +55,16 @@ class RoleController extends Controller
     public function store(Request $request)
     {
         $role_id = $request->input('role_id');
+
+        //角色名称是否填写
+        $role_name = $request->input('role_name');
+        if(!trim($role_name)){
+            return code_response(20000,'请填写角色名称');
+        }
+
         //1.角色名称不可重复
         $role_name = Role::where('name',$request->input('role_name'))->first();
-        if(!$role_name){
+        if($role_name){
             return code_response(20001,'角色名称已存在');
         }
 

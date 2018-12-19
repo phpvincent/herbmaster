@@ -13,10 +13,10 @@ Route::namespace('Admin')->group(function(){
         Route::put('resource/upload','ResourcesController@upload');
 
         //角色操作
-        Route::get('role/index','ResourcesController@index');    //列表
-        Route::post('role/add','ResourcesController@add');       //添加角色
-        Route::put('role/upload','ResourcesController@store');   //修改角色
-        Route::delete('role/delete','ResourcesController@store');//删除角色
+        Route::get('role/index','RoleController@index');    //列表
+        Route::post('role/add','RoleController@add');       //添加角色
+        Route::put('role/upload','RoleController@store');   //修改角色
+        Route::delete('role/delete','RoleController@destory');//删除角色
 
         //权限操作
     });

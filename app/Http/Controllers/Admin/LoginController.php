@@ -49,18 +49,19 @@ class LoginController extends Controller
         }
 
         //验证图片操作
-        if (!captcha_api_check($request->captcha, $request->catKey)){
-            return code_response(10006,'图片验证码错误');
-        }
+//        if (!captcha_api_check($request->captcha, $request->catKey)){
+//            return code_response(10006,'图片验证码错误');
+//        }
 
+        //账号密码验证
         if(!$token = Auth::guard('admin')->attempt($input)){
             return code_response(10004,'账号或密码错误');
         };
 
         $data['token'] = 'Bearer '. $token;
 
-        $username = $request->input('username');
         //更新用户登陆次数、更新用户最新登陆时间
+        $username = $request->input('username');
         $admin = Admin::where('username',$username)->first();
         $admin->num = $admin->num + 1;
         $admin->admin_time = date('Y-m-d H:i:s');
