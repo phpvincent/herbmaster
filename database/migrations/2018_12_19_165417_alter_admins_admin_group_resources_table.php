@@ -28,7 +28,7 @@ class AlterAdminsAdminGroupResourcesTable extends Migration
         }
         if (Schema::hasTable('resources')) {
             Schema::table('resources', function (Blueprint $table) {
-               $table->decimal('size',10,2)->default(0)->change();
+               $table->decimal('size',10,2)->default(0)->change('资源大小;单位：M');
             });
         }
     }
