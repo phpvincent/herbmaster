@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class PermissionRole extends Model
 {
-    public $table='role_user';
+    public $table='permission_role';
 }

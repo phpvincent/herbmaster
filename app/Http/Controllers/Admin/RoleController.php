@@ -7,6 +7,7 @@ use App\Models\PermissionRole;
 use App\Models\Role;
 use App\Models\RoleUser;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class RoleController extends Controller
 {
@@ -94,22 +95,31 @@ class RoleController extends Controller
             return code_response(20004,'该角色下有用户存在，不可删除');
         }
 
-        //删除角色
-        $role = Role::where('id',$role_id)->delete();
-        if(!$role){
-            return code_response(20005,'角色删除失败');
-        }
+        try {
+            DB::beginTransaction();
 
-        //删除角色权限
-        $permission_role = PermissionRole::where('role_id',$role_id)->first();
-        if($permission_role){
-            $permiss_role = PermissionRole::where('role_id',$role_id)->delete();
-            if(!$permiss_role){
-                return code_response(20006,'角色权限删除失败');
+            //删除角色
+            $role = Role::where('id',$role_id)->delete();
+            if(!$role){
+                throw new \Exception('角色删除失败！');
             }
+
+            //删除角色权限
+            $permission_role = PermissionRole::where('role_id',$role_id)->first();
+            if($permission_role){
+                $permiss_role = PermissionRole::where('role_id',$role_id)->delete();
+                if(!$permiss_role){
+                    throw new \Exception('角色权限删除失败！');
+                }
+            }
+            DB::commit();
+        } catch (\Exception $e) {
+            // 回滚事务
+            DB::rollBack();
+            return code_response(20005,$e->getMessage());
         }
 
-        return code_response(10,'角色删除失败');
+        return code_response(10,'角色删除成功');
     }
 
 }
