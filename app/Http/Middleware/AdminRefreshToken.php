@@ -102,8 +102,12 @@ class AdminRefreshToken extends BaseMiddleware
             if ($user && $user->admin_method != 1) {
                 //在只读权限下进行的写操作
                 $request_method = $request->getMethod();
-                if (!in_array($request_method, ['get', 'post'])) {
-                    return code_response(10003, 'Request Methoud not allow', 405);
+                if ($request_method!='get') {
+                    if($request_method=='post'){
+                        $request->has('forread')? : return code_response(10003, 'Request Methoud not allow', 405);
+                    }else{
+                        return code_response(10003, 'Request Methoud not allow', 405);
+                    }
                 }
             }
 
