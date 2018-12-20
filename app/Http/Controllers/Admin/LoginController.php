@@ -18,7 +18,7 @@ class LoginController extends Controller
     public function captcha()
     {
         $data['url'] = app('captcha')->create('default', true);
-        return code_response('10','获取验证码成功','200',$data);
+        return code_response(10,'获取验证码成功',200,$data);
     }
 
     /** 用户登陆

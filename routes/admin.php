@@ -12,13 +12,19 @@ Route::namespace('Admin')->group(function(){
         Route::post('user/user_info','UserController@userInfo');
         Route::put('resource/upload','ResourcesController@upload');
 
-        //角色操作
-        Route::get('role/index','RoleController@index');    //列表
-        Route::post('role/add','RoleController@add');       //添加角色
-        Route::put('role/upload','RoleController@store');   //修改角色
-        Route::delete('role/delete','RoleController@destory');//删除角色
+        Route::middleware(['admin_permission'])->group(function() {
+            //角色操作
+            Route::get('role/index', 'RoleController@index');      //角色列表
+            Route::post('role/add', 'RoleController@add');         //添加角色
+            Route::put('role/store', 'RoleController@store');      //修改角色
+            Route::get('role/show', 'RoleController@show');        //修改角色
+            Route::delete('role/delete', 'RoleController@destory');//删除角色
 
-        //权限操作
+            //权限操作
+            Route::get('permission/index', 'PermissionController@index');    //权限列表
+            Route::post('permission/add', 'PermissionController@add');       //添加权限或者修改权限
+            Route::get('permission/show', 'PermissionController@show');      //获取角色权限
+        });
     });
 });
 
