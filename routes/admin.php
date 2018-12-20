@@ -19,6 +19,21 @@ Route::namespace('Admin')->group(function(){
         Route::delete('role/delete','RoleController@destory');//删除角色
 
         //权限操作
+
+        //管理员
+        Route::get('admin/admins', 'AdminController@index');
+        Route::get('admin/info/{id}', 'AdminController@info');
+        Route::get('admin/my', 'AdminController@my');
+        Route::post('admin/add', 'AdminController@add');
+        Route::put('admin/edit', 'AdminController@edit');
+        Route::put('admin/change_password', 'AdminController@changePassword');
+        Route::delete('admin/delete/{id}', 'AdminController@destory');
+
+        Route::get('admin_group/all', 'AdminGroupController@all');
+        Route::get('admin_group/info/{id}', 'AdminGroupController@info');
+        Route::post('admin_group/add', 'AdminGroupController@add');
+        Route::put('admin_group/edit', 'AdminGroupController@edit');
+        Route::delete('admin_group/delete/{id}', 'AdminGroupController@destory');
     });
 });
 
