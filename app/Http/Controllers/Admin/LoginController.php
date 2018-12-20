@@ -18,7 +18,7 @@ class LoginController extends Controller
     public function captcha()
     {
         $data['url'] = app('captcha')->create('default', true);
-        return code_response('10','获取验证码成功','200',$data);
+        return code_response(10,'获取验证码成功',200,$data);
     }
 
     /** 用户登陆
@@ -70,5 +70,11 @@ class LoginController extends Controller
         //记录登陆日志
         \Log::info($username.":登陆成功");
         return code_response(10,'登陆成功',200,$data);
+    }
+
+    public function logout()
+    {
+        Auth::guard('admin')->logout();
+        return code_response(10,'退出成功');
     }
 }

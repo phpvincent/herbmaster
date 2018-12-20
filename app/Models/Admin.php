@@ -8,8 +8,9 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class Admin extends Authenticatable implements JWTSubject
 {
-    protected $primaryKey ='id';
-    public $timestamps=false;
+    protected $primaryKey = 'id';
+    public $timestamps = true;
+    protected $fillable = ['username', 'password','show_name', 'is_root','admin_group'];
     use Notifiable;
 
     /**
@@ -37,4 +38,8 @@ class Admin extends Authenticatable implements JWTSubject
 //        return 'id';
 //    }
 
+    public function group()
+    {
+        return $this->belongsTo(AdminGroup::class, 'admin_group','id');
+    }
 }

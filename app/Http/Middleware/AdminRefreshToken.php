@@ -121,7 +121,7 @@ class AdminRefreshToken extends BaseMiddleware
                 if(!$token){
                     $request->headers->set('Authorization', 'Bearer '.$token);
                 }else{
-                    return code_response(10001, 'The token has been blacklisted', 401);
+                    return code_response(10002, 'The token has been blacklisted', 401);
                 }
 
                 // 在响应头中返回新的 token
@@ -136,6 +136,6 @@ class AdminRefreshToken extends BaseMiddleware
             return $next($request);
         }
 
-        return code_response(10001, 'The token has been blacklisted', 401);
+        return code_response(10002, 'The token has been blacklisted', 401);
     }
 }

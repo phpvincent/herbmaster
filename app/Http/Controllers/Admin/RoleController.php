@@ -60,13 +60,13 @@ class RoleController extends Controller
         //角色名称是否填写
         $role_name = $request->input('role_name');
         if(!trim($role_name)){
-            return code_response(20000,'请填写角色名称');
+            return code_response(20003,'请填写角色名称');
         }
 
         //1.角色名称不可重复
         $role_name = Role::where('name',$request->input('role_name'))->first();
         if($role_name){
-            return code_response(20001,'角色名称已存在');
+            return code_response(20004,'角色名称已存在');
         }
 
         //2.修改角色
@@ -77,7 +77,7 @@ class RoleController extends Controller
         if($msg){
             return code_response(10,'角色修改成功');
         }else{
-            return code_response(20003,'角色修改失败');
+            return code_response(20005,'角色修改失败');
         }
     }
 
@@ -92,7 +92,7 @@ class RoleController extends Controller
         //判断该角色下，是否有用户存在
         $role_user = RoleUser::where('role_id',$role_id)->first();
         if($role_user){
-            return code_response(20004,'该角色下有用户存在，不可删除');
+            return code_response(20006,'该角色下有用户存在，不可删除');
         }
 
         try {
@@ -116,10 +116,25 @@ class RoleController extends Controller
         } catch (\Exception $e) {
             // 回滚事务
             DB::rollBack();
-            return code_response(20005,$e->getMessage());
+            return code_response(20007,$e->getMessage());
         }
 
         return code_response(10,'角色删除成功');
+    }
+
+    /** 获取角色信息
+     * @param Request $request
+     * @return \Illuminate\Contracts\Routing\ResponseFactory|\Symfony\Component\HttpFoundation\Response
+     */
+    public function show(Request $request)
+    {
+        $role_id = $request->input('role_id');
+        $role = Role::where('role_id',$role_id)->first();
+        if($role){
+            return code_response(10,'角色信息获取成功',200,$role);
+        }else{
+            return code_response(20008,'角色不存在');
+        }
     }
 
 }
