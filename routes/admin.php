@@ -9,6 +9,7 @@ Route::namespace('Admin')->group(function(){
     Route::post('login','LoginController@login');  //管理员登陆
 
     Route::middleware(['admin_refresh','log'])->group(function(){
+        Route::post('logout','LoginController@logout');
         Route::post('user/user_info','UserController@userInfo');
         Route::put('resource/upload','ResourcesController@upload');
 
@@ -28,7 +29,7 @@ Route::namespace('Admin')->group(function(){
             Route::put('admin/edit', 'AdminController@edit');
             Route::put('admin/change_password', 'AdminController@changePassword');
             Route::delete('admin/delete/{id}', 'AdminController@destory');
-            
+
             Route::get('admin_group/all', 'AdminGroupController@all');
             Route::get('admin_group/info/{id}', 'AdminGroupController@info');
             Route::post('admin_group/add', 'AdminGroupController@add');

@@ -71,4 +71,10 @@ class LoginController extends Controller
         \Log::info($username.":登陆成功");
         return code_response(10,'登陆成功',200,$data);
     }
+
+    public function logout()
+    {
+        Auth::guard('admin')->logout();
+        return code_response(10,'退出成功');
+    }
 }
