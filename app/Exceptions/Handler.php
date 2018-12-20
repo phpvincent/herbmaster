@@ -57,7 +57,7 @@ class Handler extends ExceptionHandler
             return response($exception->getMessage(), 401);
         }
         return parent::render($request, $exception);
-          if($request->is('api/*')){
+          if($request->is('api/*')||$request->is('admin/*')){
             $response = [];
             $error = $this->convertExceptionToResponse($exception);
             $response['status'] = $error->getStatusCode();

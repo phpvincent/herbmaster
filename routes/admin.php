@@ -10,7 +10,11 @@ Route::namespace('Admin')->group(function(){
 
     Route::middleware(['admin_refresh','log'])->group(function(){
         Route::post('user/user_info','UserController@userInfo');
-        Route::put('resource/upload','ResourcesController@upload');
+        //资源操作
+        Route::post('resource/upload','ResourcesController@upload');
+        Route::get('resource/get_file_list','ResourcesController@get_file_list');
+        Route::get('resource/get_file_by_id','ResourcesController@get_file_by_id');
+        Route::get('resource/get_filepath_by_id','ResourcesController@get_filepath_by_id');
 
         //角色操作
         Route::get('role/index','RoleController@index');    //列表
