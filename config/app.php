@@ -182,7 +182,7 @@ return [
         \Mews\Captcha\CaptchaServiceProvider::class,
         //RBAC
         Zizaco\Entrust\EntrustServiceProvider::class,
-
+        Intervention\Image\ImageServiceProvider::class,
     ],
 
     /*
@@ -235,6 +235,7 @@ return [
         'JWTFactory' => Tymon\JWTAuth\Facades\JWTFactory::class,
         'Captcha' => Mews\Captcha\Facades\Captcha::class,
         'Entrust' => Zizaco\Entrust\EntrustFacade::class,
+        'Image' => Intervention\Image\Facades\Image::class,
     ],
 
 ];

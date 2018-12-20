@@ -10,6 +10,10 @@ class Resource extends Model
     {
     	return ['jpg','jpeg','png','mp4','gif','xls','xlsx'];
     }
+    public static function get_img_type()
+    {
+    	return ['jpg','jpeg','png'];
+    }
     public static function get_size($num)
     {
     	return sprintf("%.2f",$num/1024/1024);

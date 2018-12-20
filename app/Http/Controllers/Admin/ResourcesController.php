@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Admin;
-
+use Intervention\Image\ImageManager as image;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
@@ -29,13 +29,29 @@ class ResourcesController extends Controller
     	if(!$request->has('site_id')) return code_response(20102, 'site_id not find ,please check your commit');
     	$site_id=$request->input('site_id');
     	$filename=$file->getClientOriginalName();
+    	$timestring=date('YmdHis');
     	//dd(Storage::disk('resources')->directories());
     	/*$dir=storage_path().'\\app\\public\\resources\\'.$type.'\\'.date('Y-m-d');
     	if (!is_dir($dir)){
                 mkdir($dir);
             }
     	$newname=$dir.'\\'.$filename;*/
-    	$newname=$type.'/'.date('YmdHis').$filename;
+    	$newname=$type.'/'.$timestring.$filename;
+    	if(in_array($type,Resource::get_img_type())){
+    		try{
+	    		//制作缩略图
+	    		$thum_name=$type.'/'.'thum-'.$timestring.$filename;
+		    	$thum_path=storage_path('app/public/resources').'/'.$thum_name;
+		    	$manager = new Image(array('driver' => 'GD'));
+		    	$image = $manager->make($file)->resize(300, 200)->save($thum_path);
+		    	//$thum_path=Storage::disk('resources')->url($thum_name);
+		    	$thum_path=asset("storage/resources/".$thum_name);
+		    }catch(\Exception $e){
+		    	return code_response(20109, 'thum_img make faild');
+		    }
+    	}else{
+		    	$thum_path=asset('storage/file.jpg');
+    	}   	
     	$bool=Storage::disk('resources')->put($newname,file_get_contents($file->getRealPath()));
     	if(!$bool) return code_response(20103, 'file upload faild');
     	$resources=new Resource;
@@ -44,7 +60,9 @@ class ResourcesController extends Controller
     	$resources->admin_id=$admin_id;
     	$resources->cate_id=$cate_id;
     	$resources->site_id=$site_id;
-    	$resources->path=Storage::disk('resources')->url($newname);
+    	//$resources->path=Storage::disk('resources')->url($newname);
+    	$resources->path=asset('storage/resources/'.$newname);
+    	$resources->thum_path=$thum_path;
     	$bool=$resources->save();
     	if(!$bool) return code_response(20104, 'file upload faild');
     	return code_response(10, 'file upload success',200,$resources->toArray());
@@ -82,8 +100,10 @@ class ResourcesController extends Controller
    public function get_filepath_by_id(Request $request)
    {
     	if(!$request->has('id')) return code_response(20107, 'file id not find ,please check your commit');
-    	 if($data=Resource::find($request->input('id'))->path){
-    		return code_response(10, 'file slect success',200,['path'=>$data]);
+    	 if($data=Resource::find($request->input('id'))){
+    	 	//如果包含此字段，返回缩略图路径
+    	 	if($request->has('thum'))  return code_response(10, 'thum_file slect success',200,['path'=>$data->thum_path]);
+    		return code_response(10, 'file slect success',200,['path'=>$data->path]);
     	 }else{
     		return code_response(20108, 'file id wrong',200);
     	 }
