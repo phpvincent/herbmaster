@@ -23,6 +23,7 @@ class AdminController extends Controller
         $is_root = $request->has('is_root') ? $request->input('is_root') : false;
         $admin_use = $request->has('admin_use') ? $request->input('admin_use') : false;
         $admin_group = $request->input('admin_group', 0);
+        $per_page = $request->input('per_page', 15);
         $admins = Admin::with(['group:id,group_name,group_rule'])->where(function ($query) use ($search) {
             if ($search) {
                 $query->where('username', 'like', '%' . $search . '%')->orWhere('show_name', 'like', '%' . $search . '%');
@@ -39,7 +40,7 @@ class AdminController extends Controller
             if ($admin_group) {
                 $query->where('admin_group', $admin_group);
             }
-        })->paginate();
+        })->paginate($per_page);
         return code_response(10, '获取成功！', 200, ['data' => $admins]);
     }
 
