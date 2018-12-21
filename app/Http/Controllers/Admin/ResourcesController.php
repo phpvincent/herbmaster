@@ -25,6 +25,7 @@ class ResourcesController extends Controller
     	$type=$file->getClientOriginalExtension();
     	if(!in_array($type, Resource::get_allow_filetype())) return code_response(20101, 'Filetype not allowed');
     	$size=Resource::get_size($file->getClientSize());
+      if($size > 8*1024*1024) return code_response(20110, 'Size not allowed');
     	$admin_id = Auth::guard('admin')->payload()['sub'];
     	if(!$request->has('site_id')) return code_response(20102, 'site_id not find ,please check your commit');
     	$site_id=$request->input('site_id');
@@ -37,23 +38,24 @@ class ResourcesController extends Controller
             }
     	$newname=$dir.'\\'.$filename;*/
     	$newname=$type.'/'.$timestring.$filename;
-    	if(in_array($type,Resource::get_img_type())){
-    		try{
-	    		//制作缩略图
-	    		$thum_name=$type.'/'.'thum-'.$timestring.$filename;
-		    	$thum_path=storage_path('app/public/resources').'/'.$thum_name;
-		    	$manager = new Image(array('driver' => 'GD'));
-		    	$image = $manager->make($file)->resize(300, 200)->save($thum_path);
-		    	//$thum_path=Storage::disk('resources')->url($thum_name);
-		    	$thum_path=asset("storage/resources/".$thum_name);
-		    }catch(\Exception $e){
-		    	return code_response(20109, 'thum_img make faild');
-		    }
-    	}else{
-		    	$thum_path=asset('storage/file.jpg');
-    	}   	
-    	$bool=Storage::disk('resources')->put($newname,file_get_contents($file->getRealPath()));
-    	if(!$bool) return code_response(20103, 'file upload faild');
+    	$manager = new Image(array('driver' => 'GD'));
+      $bool=$manager->make($file)->insert(asset('storage/water.png'),'top-left', 15, 10)->save(storage_path('app/public/resources').'/'.$newname);
+    	//$bool=Storage::disk('resources')->put($newname,file_get_contents($file->getRealPath()));
+    	if(!$bool) return code_response(20103, 'file upload faild');if(in_array($type,Resource::get_img_type())){
+      try{
+          //制作缩略图
+          $thum_name=$type.'/'.'thum-'.$timestring.$filename;
+          $thum_path=storage_path('app/public/resources').'/'.$thum_name;
+          $manager = new Image(array('driver' => 'GD'));
+          $image = $manager->make(storage_path('app/public/resources').'/'.$newname)->resize(300, 200)->save($thum_path);
+          //$thum_path=Storage::disk('resources')->url($thum_name);
+          $thum_path=asset("storage/resources/".$thum_name);
+        }catch(\Exception $e){
+          return code_response(20109, 'thum_img make faild');
+        }
+      }else{
+          $thum_path=asset('storage/file.jpg');
+      }  
     	$resources=new Resource;
     	$resources->type=$type;
     	$resources->size=$size;
