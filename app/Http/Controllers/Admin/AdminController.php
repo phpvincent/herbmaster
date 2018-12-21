@@ -7,6 +7,7 @@ use App\Models\AdminGroup;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class AdminController extends Controller
@@ -122,12 +123,12 @@ class AdminController extends Controller
         $admin = Auth::guard('admin')->user();
         $validator = Validator::make($request->all(), [
             'old_password' => 'required|between:6,20',
-            'new_password' => 'required|between:6,20'
-            ]);
+            'new_password' => 'required|between:6,20|confirmed',
+        ]);
         if ($validator->fails()) {
             return code_response(10001, $validator->errors()->first());
         }
-        if ($admin->password != bcrypt($request->input('old_password'))) {
+        if(!Hash::check(($request->input('old_password')), $admin->password)){
             return code_response(10002, '原密码输入错误！');
         }
         $admin->password = bcrypt($request->input('new_password'));
