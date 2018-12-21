@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class AlterResourcesTable extends Migration
+class AddThumPathToResourcesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,12 @@ class AlterResourcesTable extends Migration
      */
     public function up()
     {
-        if(Schema::hasColumn('resources', 'thum_path')) {
+        if(! Schema::hasColumn('resources', 'thum_path')) {
             Schema::table('resources', function (Blueprint $table) {
-                $table->string('thum_path')->default(asset('storage/file.jpg'))->comment('缩略图路径')->change();
+                $table->string('thum_path')->comment('缩略图路径');
             });
         }
+
     }
 
     /**
@@ -27,8 +28,10 @@ class AlterResourcesTable extends Migration
      */
     public function down()
     {
-        Schema::table('resources', function (Blueprint $table) {
-            //
-        });
+        if(Schema::hasColumn('resources', 'thum_path')) {
+            Schema::table('resources', function (Blueprint $table) {
+                $table->drop_column('thum_path');
+            });
+        }
     }
 }
