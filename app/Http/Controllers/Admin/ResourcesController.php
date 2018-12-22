@@ -16,7 +16,7 @@ class ResourcesController extends Controller
      * @return [type:post]           [文件上传]
      */
     public function upload(Request $request)
-    {
+    { 
     	if(!$request->has('cate_id')||$request->input('cate_id')==null){
     		$cate_id=0;
     	}
@@ -24,6 +24,8 @@ class ResourcesController extends Controller
     	if(!$file) return code_response(20100, 'file not found');
     	$type=$file->getClientOriginalExtension();
     	if(!in_array($type, Resource::get_allow_filetype())) return code_response(20101, 'Filetype not allowed');
+      $dir_arr=$this->getDir();
+      if(!in_array($type, $dir_arr))  mkdir(storage_path('app/public/resources').'/'.$type);
     	$size=Resource::get_size($file->getClientSize());
       if($size > 8*1024*1024) return code_response(20102, 'Size not allowed');
     	$admin_id = Auth::guard('admin')->payload()['sub'];
@@ -38,24 +40,28 @@ class ResourcesController extends Controller
             }
     	$newname=$dir.'\\'.$filename;*/
     	$newname=$type.'/'.$timestring.$filename;
-    	$manager = new Image(array('driver' => 'GD'));
-      $bool=$manager->make($file)->insert(asset('storage/water.png'),'top-left', 15, 10)->save(storage_path('app/public/resources').'/'.$newname);
-    	//$bool=Storage::disk('resources')->put($newname,file_get_contents($file->getRealPath()));
-    	if(!$bool) return code_response(20104, 'file upload faild');if(in_array($type,Resource::get_img_type())){
-      try{
-          //制作缩略图
-          $thum_name=$type.'/'.'thum-'.$timestring.$filename;
-          $thum_path=storage_path('app/public/resources').'/'.$thum_name;
-          $manager = new Image(array('driver' => 'GD'));
-          $width=$request->input('width',300);
-          $height=$request->input('height',200);
-          $image = $manager->make(storage_path('app/public/resources').'/'.$newname)->resize($width,$height)->save($thum_path);
-          //$thum_path=Storage::disk('resources')->url($thum_name);
-          $thum_path=asset("storage/resources/".$thum_name);
-        }catch(\Exception $e){
-          return code_response(20105, 'thum_img make faild');
-        }
+      if(in_array($type,Resource::get_img_type())){
+      	$manager = new Image(array('driver' => 'GD'));
+        $bool=$manager->make($file)->insert(asset('storage/water.png'),'top-left', 15, 10)->save(storage_path('app/public/resources').'/'.$newname);
+      	//$bool=Storage::disk('resources')->put($newname,file_get_contents($file->getRealPath()));
+      	if(!$bool) return code_response(20104, 'file upload faild');
+
+        try{
+            //制作缩略图
+            $thum_name=$type.'/'.'thum-'.$timestring.$filename;
+            $thum_path=storage_path('app/public/resources').'/'.$thum_name;
+            $manager = new Image(array('driver' => 'GD'));
+            $width=$request->input('width',300);
+            $height=$request->input('height',200);
+            $image = $manager->make(storage_path('app/public/resources').'/'.$newname)->resize($width,$height)->save($thum_path);
+            //$thum_path=Storage::disk('resources')->url($thum_name);
+            $thum_path=asset("storage/resources/".$thum_name);
+          }catch(\Exception $e){
+            return code_response(20105, 'thum_img make faild');
+          }
       }else{
+          $bool=Storage::disk('resources')->put($newname,file_get_contents($file->getRealPath()));
+          if(!$bool) return code_response(20104, 'file upload faild');
           $thum_path=asset('storage/file.jpg');
       }  
     	$resources=new Resource;
@@ -160,5 +166,22 @@ class ResourcesController extends Controller
        $del_path=substr_replace($file_path,'',$count,$length);
        if(!Storage::disk('resources')->delete($del_path)) return false;
        return true;
+    }
+    public function getDir() {
+    $dir=storage_path('app/public/resources');
+    $dirArray[]=NULL;
+    if (false != ($handle = opendir ( $dir ))) {
+        $i=0;
+        while ( false !== ($file = readdir ( $handle )) ) {
+            //去掉"“.”、“..”以及带“.xxx”后缀的文件
+            if ($file != "." && $file != ".."&&!strpos($file,".")) {
+                $dirArray[$i]=$file;
+                $i++;
+            }
+        }
+        //关闭句柄
+        closedir ( $handle );
+    }
+    return $dirArray;
     }
 }
