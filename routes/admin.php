@@ -17,7 +17,7 @@ Route::namespace('Admin')->group(function(){
         Route::get('resource/get_file_by_id','ResourcesController@get_file_by_id');
         Route::get('resource/get_filepath_by_id','ResourcesController@get_filepath_by_id');
 
-        Route::middleware(['admin_permission'])->group(function() {
+//        Route::middleware(['admin_permission'])->group(function() {
             //角色操作
             Route::get('role/index', 'RoleController@index');      //角色列表
             Route::post('role/add', 'RoleController@add');         //添加角色
@@ -44,6 +44,6 @@ Route::namespace('Admin')->group(function(){
             Route::post('permission/add', 'PermissionController@add');       //添加权限或者修改权限
             Route::get('permission/show', 'PermissionController@show');      //获取角色权限
         });
-    });
+//    });
 });
 
