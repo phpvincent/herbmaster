@@ -11,6 +11,8 @@ Route::namespace('Admin')->group(function(){
     Route::middleware(['admin_refresh','log'])->group(function(){
         Route::post('logout','LoginController@logout');
         Route::post('user/user_info','UserController@userInfo');
+        Route::get('permission','LoginController@permission');  //管理员登陆返回用户权限
+
         //资源操作
         Route::post('resource/upload','ResourcesController@upload');
         Route::get('resource/get_file_list','ResourcesController@get_file_list');
@@ -19,7 +21,7 @@ Route::namespace('Admin')->group(function(){
         Route::delete('resource/del_file_by_id','ResourcesController@del_file_by_id');
         Route::delete('resource/del_file_by_ids','ResourcesController@del_file_by_ids');
 
-        Route::middleware(['admin_permission'])->group(function() {
+//        Route::middleware(['admin_permission'])->group(function() {
             //角色操作
             Route::get('role/index', 'RoleController@index');      //角色列表
             Route::post('role/add', 'RoleController@add');         //添加角色
@@ -46,6 +48,7 @@ Route::namespace('Admin')->group(function(){
             Route::post('permission/add', 'PermissionController@add');       //添加权限或者修改权限
             Route::get('permission/show', 'PermissionController@show');      //获取角色权限
         });
-    });
+//    });
+
 });
 

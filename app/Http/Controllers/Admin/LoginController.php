@@ -4,6 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
+use App\Models\Permission;
+use App\Models\PermissionRole;
+use App\Models\Role;
+use App\Models\RoleAdmin;
 use Illuminate\Http\Request;
 use Auth;
 use Validator;
@@ -72,9 +76,31 @@ class LoginController extends Controller
         return code_response(10,'登陆成功',200,$data);
     }
 
+    /** 退出登陆
+     * @return \Illuminate\Contracts\Routing\ResponseFactory|\Symfony\Component\HttpFoundation\Response
+     */
     public function logout()
     {
         Auth::guard('admin')->logout();
         return code_response(10,'退出成功');
+    }
+
+    /** 登陆成功，返回用户权限
+     * @return \Illuminate\Contracts\Routing\ResponseFactory|\Symfony\Component\HttpFoundation\Response
+     */
+    public function permission()
+    {
+        $admin = Auth::guard('admin')->user();
+        $role_id = RoleAdmin::where('admin_id',$admin->id)->value('role_id');
+        $role = Role::where('id',$role_id)->first();
+        if(!$role){
+            return code_response(20011,'角色信息获取失败');
+        }
+
+        $ids = PermissionRole::where('role_id',$role_id)->pluck('permission_id')->toArray();
+        $permissions = Permission::whereIn('id',$ids)->get();
+        //处理数据为前台所需类型
+        $data = Permission::getPermission($permissions,0);
+        return code_response(10,'获取角色权限成功',200,$data);
     }
 }
