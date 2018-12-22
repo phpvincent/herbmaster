@@ -16,6 +16,8 @@ Route::namespace('Admin')->group(function(){
         Route::get('resource/get_file_list','ResourcesController@get_file_list');
         Route::get('resource/get_file_by_id','ResourcesController@get_file_by_id');
         Route::get('resource/get_filepath_by_id','ResourcesController@get_filepath_by_id');
+        Route::delete('resource/del_file_by_id','ResourcesController@del_file_by_id');
+        Route::delete('resource/del_file_by_ids','ResourcesController@del_file_by_ids');
 
 //        Route::middleware(['admin_permission'])->group(function() {
             //角色操作

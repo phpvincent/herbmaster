@@ -7,6 +7,7 @@ use App\Models\AdminGroup;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class AdminController extends Controller
@@ -22,6 +23,7 @@ class AdminController extends Controller
         $is_root = $request->has('is_root') ? $request->input('is_root') : false;
         $admin_use = $request->has('admin_use') ? $request->input('admin_use') : false;
         $admin_group = $request->input('admin_group', 0);
+        $per_page = $request->input('per_page', 15);
         $admins = Admin::with(['group:id,group_name,group_rule'])->where(function ($query) use ($search) {
             if ($search) {
                 $query->where('username', 'like', '%' . $search . '%')->orWhere('show_name', 'like', '%' . $search . '%');
@@ -38,7 +40,7 @@ class AdminController extends Controller
             if ($admin_group) {
                 $query->where('admin_group', $admin_group);
             }
-        })->paginate();
+        })->paginate($per_page);
         return code_response(10, '获取成功！', 200, ['data' => $admins]);
     }
 
@@ -122,12 +124,12 @@ class AdminController extends Controller
         $admin = Auth::guard('admin')->user();
         $validator = Validator::make($request->all(), [
             'old_password' => 'required|between:6,20',
-            'new_password' => 'required|between:6,20'
-            ]);
+            'new_password' => 'required|between:6,20|confirmed',
+        ]);
         if ($validator->fails()) {
             return code_response(10001, $validator->errors()->first());
         }
-        if ($admin->password != bcrypt($request->input('old_password'))) {
+        if(!Hash::check(($request->input('old_password')), $admin->password)){
             return code_response(10002, '原密码输入错误！');
         }
         $admin->password = bcrypt($request->input('new_password'));
