@@ -6,9 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Permission;
 use App\Models\PermissionRole;
 use App\Models\Role;
-use App\Models\RoleUser;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class PermissionController extends Controller
 {
@@ -17,9 +15,15 @@ class PermissionController extends Controller
      * @return \Illuminate\Contracts\Routing\ResponseFactory|\Symfony\Component\HttpFoundation\Response
      */
     public function index(){
-        $data = PermissionRole::all();
-        $permissionWeb = $this->getTree($data, 0);                          //web数据处理
-        return code_response(10,'获取权限列表成功',200,$permissionWeb);
+        $datas = Permission::all();
+        //web数据处理
+        if(!$datas->isEmpty()){
+            $permission = $this->getTree($datas, 0);
+            $data['permission'] = $permission;
+        }else{
+            $data['permission'] = [];
+        }
+        return code_response(10,'获取权限列表成功',200,$data);
     }
 
     /** 处理权限数据
@@ -35,12 +39,15 @@ class PermissionController extends Controller
             {
                 if($v->parent_id == $parent_id)
                 {
-                    $result['children'] = $this->getTree($data, $v->id);
-                    $result['name'] = $v->name;
                     $result['id'] = $v->id;
+                    $result['name'] = $v->name;
                     $result['access'] = false;
-                    $result['display_name'] = $v->alias;
-                    $tree[] = $result;
+                    $result['display_name'] = $v->display_name;
+                    $children  =$this->getTree($data, $v->id);
+                    if(!empty($children)){
+                        $result['children'] = $children;
+                    }
+                    array_push($tree,$result);
                 }
             }
         }
@@ -64,10 +71,10 @@ class PermissionController extends Controller
 
         //2.如果角色，有权限（删除权限）
         PermissionRole::where('role_id',$role_id)->delete();
-
         //3.给角色赋予新权限
         if(!empty($data)) {
             $parent_id = [];
+            $reslt = [];
             foreach ($data as $item) {
                 $premiss = Permission::where('name', $item)->first();
                 if ($premiss->parent_id != 0) {
@@ -102,13 +109,13 @@ class PermissionController extends Controller
     public function show(Request $request)
     {
         $role_id = $request->input('role_id');
-        $role = Role::where('role_id',$role_id)->first();
+        $role = Role::where('id',$role_id)->first();
         if(!$role){
             return code_response(20011,'角色信息获取失败');
         }
         $ids = PermissionRole::where('role_id',$role_id)->pluck('permission_id')->toArray();
         $permissions = Permission::whereIn('id',$ids)->get();
+
         return code_response(10,'获取角色权限成功',200,$permissions);
     }
-
 }
