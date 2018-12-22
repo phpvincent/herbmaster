@@ -72,6 +72,9 @@ class LoginController extends Controller
         return code_response(10,'登陆成功',200,$data);
     }
 
+    /** 退出登陆
+     * @return \Illuminate\Contracts\Routing\ResponseFactory|\Symfony\Component\HttpFoundation\Response
+     */
     public function logout()
     {
         Auth::guard('admin')->logout();

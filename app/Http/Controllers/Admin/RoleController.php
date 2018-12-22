@@ -129,7 +129,7 @@ class RoleController extends Controller
     public function show(Request $request)
     {
         $role_id = $request->input('role_id');
-        $role = Role::where('role_id',$role_id)->first();
+        $role = Role::where('id',$role_id)->first();
         if($role){
             return code_response(10,'角色信息获取成功',200,$role);
         }else{
