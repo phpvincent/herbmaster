@@ -12,7 +12,7 @@ class Resource extends Model
     }
     public static function get_img_type()
     {
-    	return ['jpg','jpeg','png'];
+    	return ['jpg','jpeg','png','gif'];
     }
     public static function get_size($num)
     {
