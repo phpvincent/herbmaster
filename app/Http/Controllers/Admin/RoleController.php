@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\PermissionRole;
 use App\Models\Role;
-use App\Models\RoleUser;
+use App\Models\RoleAdmin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -90,7 +90,7 @@ class RoleController extends Controller
         $role_id = $request->input('role_id');
 
         //判断该角色下，是否有用户存在
-        $role_user = RoleUser::where('role_id',$role_id)->first();
+        $role_user = RoleAdmin::where('role_id',$role_id)->first();
         if($role_user){
             return code_response(20006,'该角色下有用户存在，不可删除');
         }

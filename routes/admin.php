@@ -11,6 +11,8 @@ Route::namespace('Admin')->group(function(){
     Route::middleware(['admin_refresh','log'])->group(function(){
         Route::post('logout','LoginController@logout');
         Route::post('user/user_info','UserController@userInfo');
+        Route::get('permission','LoginController@permission');  //管理员登陆返回用户权限
+
         //资源操作
         Route::post('resource/upload','ResourcesController@upload');
         Route::get('resource/get_file_list','ResourcesController@get_file_list');

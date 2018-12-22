@@ -6,9 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Permission;
 use App\Models\PermissionRole;
 use App\Models\Role;
-use App\Models\RoleUser;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class PermissionController extends Controller
 {
@@ -117,34 +115,7 @@ class PermissionController extends Controller
         }
         $ids = PermissionRole::where('role_id',$role_id)->pluck('permission_id')->toArray();
         $permissions = Permission::whereIn('id',$ids)->get();
-        //处理数据为前台所需类型
-        $data = $this->getPermission($permissions,0);
-        return code_response(10,'获取角色权限成功',200,$data);
-    }
 
-    /** 处理权限数据
-     * @param $data
-     * @param $parent_id
-     * @return array
-     */
-    private function getPermission($data,$parent_id)
-    {
-        $tree = [];
-        if(!empty($data)){
-            foreach($data as $k => $v)
-            {
-                if($v->parent_id == $parent_id)
-                {
-                    $result['name'] = $v->name;
-                    $result['meta'] = unserialize($v->meta);
-                    $children  =$this->getPermission($data, $v->id);
-                    if(!empty($children)){
-                        $result['children'] = $children;
-                    }
-                    array_push($tree,$result);
-                }
-            }
-        }
-        return $tree;
+        return code_response(10,'获取角色权限成功',200,$permissions);
     }
 }
