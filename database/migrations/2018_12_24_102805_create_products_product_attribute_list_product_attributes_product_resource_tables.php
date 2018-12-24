@@ -18,7 +18,7 @@ class CreateProductsProductAttributeListProductAttributesProductResourceTables e
                 $table->increments('id');
                 $table->unsignedInteger('site_id')->index()->comment('站点id');
                 $table->string('name', 64)->comment('产品名称，展示 使用');
-                $table->string('name', 64)->comment('产品英文名称');
+                $table->string('english_name', 64)->comment('产品英文名称');
                 $table->text('description')->comment('描述');
                 $table->decimal('price', 10, 2)->default(0)->comment('价格');
                 $table->decimal('original_price', 10, 2)->default(0)->comment('原价');
