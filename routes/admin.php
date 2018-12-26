@@ -47,6 +47,17 @@ Route::namespace('Admin')->group(function(){
             Route::get('permission/index', 'PermissionController@index');    //权限列表
             Route::post('permission/add', 'PermissionController@add');       //添加权限或者修改权限
             Route::get('permission/show', 'PermissionController@show');      //获取角色权限
+
+            //产品
+            Route::get('attribute/all', 'AttributeController@index');
+            Route::post('attribute/add', 'AttributeController@add');
+            Route::put('attribute/edit', 'AttributeController@edit');
+            Route::put('attribute/delete/{id}', 'AttributeController@destory');
+            Route::get('product/index', 'ProductController@index');
+            Route::post('product/add', 'ProductController@add');
+            Route::post('product/edit', 'ProductController@edit');
+            Route::post('product/destory/{id}', 'ProductController@destory');
+            Route::post('product/info/{id}', 'ProductController@info');
         });
 //    });
 
