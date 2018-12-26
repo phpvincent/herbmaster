@@ -53,9 +53,9 @@ class LoginController extends Controller
         }
 
         //验证图片操作
-//        if (!captcha_api_check($request->captcha, $request->catKey)){
-//            return code_response(10006,'图片验证码错误');
-//        }
+        if (!captcha_api_check($request->captcha, $request->catKey)){
+            return code_response(10006,'图片验证码错误');
+        }
 
         //账号密码验证
         if(!$token = Auth::guard('admin')->attempt($input)){
