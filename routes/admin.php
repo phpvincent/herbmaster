@@ -58,7 +58,12 @@ Route::namespace('Admin')->group(function(){
             Route::post('product/edit', 'ProductController@edit');
             Route::post('product/destory/{id}', 'ProductController@destory');
             Route::post('product/info/{id}', 'ProductController@info');
-        });
+
+            //库存
+            Route::get('inventory/index', 'InventoryController@index');
+            Route::get('inventory/show', 'InventoryController@show');
+            Route::put('inventory/edit', 'InventoryController@edit');
+    });
 //    });
 
 });

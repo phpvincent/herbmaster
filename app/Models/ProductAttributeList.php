@@ -10,8 +10,8 @@ class ProductAttributeList extends Model
     public $timestamps = false;
     protected $primaryKey = 'id';
 
-    public function hass()
+    public function attributeListHasAttribute()
     {
-        return $this->hasOne('App\Models\Attribute', 'attribute_id', 'id');
+        return $this->hasOne('App\Models\Attribute', 'id', 'attribute_id');
     }
 }
