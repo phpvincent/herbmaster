@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Product;
+use App\Models\ProductAttribute;
 use Auth;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -31,6 +32,30 @@ class InventoryController extends Controller
         $id = $request->input('id');
 
         //返回产品属性
-        $data = 'aaa';
+        $datas = ProductAttribute::where('product_id',$id)->get();
+
+        $title = [];
+        $productAttribute = [];
+        if(!$datas->isEmpty()){
+            foreach ($datas as &$item){
+                $attribute_list_ids = explode(',',$item->attribute_list_ids);
+                $attribute_list_title = [];
+                if(count($attribute_list_ids) > 0){
+                    foreach ($attribute_list_ids as $attribute_list_id){
+                        $attribute_list = ProductAttribute::where('id',$attribute_list_id)->first();
+                        if($attribute_list){
+                            $attribute_list_title[] = $attribute_list->hass->name;
+                        }
+//                        $attribute_list_title = ProductAttribute::where('product_attribute_list.id',$attribute_list_id)->leftJoin('attributes','attributes.id','=','product_attribute_list.attribute_id')->value('attributes.name');
+                    }
+                    $title = array_merge($attribute_list_title,['库存','价格','SKU']);
+                }else{
+                    $title = ['库存','价格','SKU'];
+                }
+            }
+        }
+
+        $data['title'] = $title;
+        return code_response(10, '获取产品列表成功！', 200, $data);
     }
 }
