@@ -57,7 +57,7 @@ Route::namespace('Admin')->group(function(){
             Route::post('product/add', 'ProductController@add');
             Route::post('product/edit', 'ProductController@edit');
             Route::post('product/destory/{id}', 'ProductController@destory');
-            Route::post('product/info/{id}', 'ProductController@info');
+            Route::get('product/info/{id}', 'ProductController@info');
         });
 //    });
 
