@@ -12,6 +12,6 @@ class ProductAttributeList extends Model
 
     public function attributeListHasAttribute()
     {
-        return $this->hasOne('App\Models\Attribute', 'id', 'attribute_id');
+        return $this->hasOne(Attribute::class, 'id', 'attribute_id');
     }
 }
