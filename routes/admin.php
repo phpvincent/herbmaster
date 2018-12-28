@@ -57,7 +57,23 @@ Route::namespace('Admin')->group(function(){
             Route::post('collection/upload', 'CollectionController@upload');
             Route::post('collection/add_products', 'CollectionController@add_products');
             Route::delete('collection/del_products', 'CollectionController@del_products');
-        });
+
+            //产品
+            Route::get('attribute/all', 'AttributeController@index');
+            Route::post('attribute/add', 'AttributeController@add');
+            Route::put('attribute/edit', 'AttributeController@edit');
+            Route::put('attribute/delete/{id}', 'AttributeController@destory');
+            Route::get('product/index', 'ProductController@index');
+            Route::post('product/add', 'ProductController@add');
+            Route::post('product/edit', 'ProductController@edit');
+            Route::post('product/destory/{id}', 'ProductController@destory');
+            Route::post('product/info/{id}', 'ProductController@info');
+
+            //库存
+            Route::get('inventory/index', 'InventoryController@index');
+            Route::get('inventory/show', 'InventoryController@show');
+            Route::put('inventory/edit', 'InventoryController@edit');
+    });
 //    });
 
 });

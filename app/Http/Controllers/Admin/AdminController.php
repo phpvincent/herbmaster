@@ -84,7 +84,7 @@ class AdminController extends Controller
     public function add(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'username' => 'required|string|:admins|max:100',
+            'username' => 'required|string|unique:admins,username|max:100',
             'password' => 'required|string|between:6,20',
             'show_name' => 'required|string|max:255',
             'is_root' => 'required|in:0,1',
