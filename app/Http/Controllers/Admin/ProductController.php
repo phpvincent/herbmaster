@@ -100,11 +100,14 @@ class ProductController extends Controller
                     $product_attribute_list = [];
                     foreach ($attribute_options as $attribute_id => $options) {
                         foreach ($options as $value) {
+                            if(ProductAttributeList::where('product_id', $product->id)->where('attribute_id', $attribute_id)->where('attribute_value',$value->attribute_value)->exist()) {
+                                continue;
+                            }
                             $options = new ProductAttributeList();
                             $options->attribute_id = $attribute_id;
                             $options->product_id = $product->id;
-                            $options->attribute_value = $value->name;
-                            $options->attribute_english_value = $value->english_name;
+                            $options->attribute_value = $value->attribute_value;
+                            $options->attribute_english_value = $value->attribute_english_value;
                             $options->save();
                             $product_attribute_list[$attribute_id . '_' . $value->name] = $options->id;
                         }
@@ -147,6 +150,7 @@ class ProductController extends Controller
             }
             DB::commit();
         } catch (\Exception $e) {
+            DB::rollBack();
             return code_response(50001, '添加产品失败！' . $e->getMessage());
         }
 
@@ -200,7 +204,131 @@ class ProductController extends Controller
 
     public function add_variant(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'product_id' => 'required|integer|exists:products,id',
+            'price' => 'required|numeric',
+            'sku' => 'required|string|max:32',
+            'bar_code' => 'required|string|max:32',
+            'num' => 'required|integer',
+        ]);
+        if ($validator->fails()) {
+            return code_response(10001, $validator->errors()->first());
+        }
+        if (! $request->has('attribute_list')) {
+            return code_response(10002, '请输入产品属性选项及值！');
+        }
+        $attribute_list = json_decode($request->input('attribute_list'));
+        $ids = [];
+        foreach ($attribute_list as $key=>$value) {
+            $id =  ProductAttributeList::where('product_id', $request->input('product_id'))->where('attribute_id', $key)->where('attribute_value', $value->attribute_value)->value('id');
+            if(! $id) {
+                $product_attribute_list = new ProductAttributeList();
+                $product_attribute_list->product_id = $request->input('product_id');
+                $product_attribute_list->attribute_id = $key;
+                $product_attribute_list->attribute_value = $value->attribute_value;
+                $product_attribute_list->attribute_english_value = $value->attribute_english_value;
+                $product_attribute_list->save();
+                $ids[] = $product_attribute_list->id;
+            } else {
+                $ids[] = $id;
+            }
+        }
+        $product_attribute = new  ProductAttribute();
+        $product_attribute->product_id = $request->input('product_id');
+        $product_attribute->attribute_list_ids = implode(',', $ids);
+        $product_attribute->price = $request->input('price');
+        $product_attribute->sku = $request->input('sku');
+        $product_attribute->bar_code = $request->input('bar_code');
+        $product_attribute->num = $request->input('num');
+        if ($product_attribute->save()) {
+            return code_response(10, '添加产品变种成功！', 200, ['data' => $product_attribute]);
+        }else{
+            return code_response(50001, '修改产品变种失败！');
+        }
+    }
+    public function edit_variant(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer|exists:product_attributes,id',
+            'price' => 'required|numeric',
+            'sku' => 'required|string|max:32',
+            'bar_code' => 'required|string|max:32',
+            'num' => 'required|integer',
+        ]);
+        if ($validator->fails()) {
+            return code_response(10001, $validator->errors()->first());
+        }
+        if (! $request->has('attribute_list')) {
+            return code_response(10002, '请输入产品属性选项及值！');
+        }
+        $attribute_list = json_decode($request->input('attribute_list'));
+        $ids = [];
+        foreach ($attribute_list as $key=>$value) {
+            $id =  ProductAttributeList::where('product_id', $request->input('product_id'))->where('attribute_id', $key)->where('attribute_value', $value->attribute_value)->value('id');
+            if(! $id) {
+                $product_attribute_list = new ProductAttributeList();
+                $product_attribute_list->product_id = $request->input('product_id');
+                $product_attribute_list->attribute_id = $key;
+                $product_attribute_list->attribute_value = $value->attribute_value;
+                $product_attribute_list->attribute_english_value = $value->attribute_english_value;
+                $product_attribute_list->save();
+                $ids[] = $product_attribute_list->id;
+            } else {
+                $ids[] = $id;
+            }
+        }
+        $product_attribute = ProductAttribute::find($request->input('id'));
+        $product_attribute->attribute_list_ids = implode(',', $ids);;
+        $product_attribute->price = $request->input('price');
+        $product_attribute->sku = $request->input('sku');
+        $product_attribute->bar_code = $request->input('bar_code');
+        $product_attribute->num = $request->input('num');
+        if ($product_attribute->save()) {
+            return code_response(10, '修改产品变种成功！', 200, ['data' => $product_attribute]);
+        }else{
+            return code_response(50001, '修改产品变种失败！');
+        }
 
+    }
+    public function add_option(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'product_id' => 'required|integer|exists:products,id',
+//            'attribute_id' => 'required|integer|exists:attributes,id',
+//            'attribute_value' => ['required', 'string', 'max:64', Rule::unique('product_attribute_list')
+//                ->where('product_id', $request->input('product_id'))->where('attribute_id', $request->input('attribute_id'))],
+//            'attribute_english_value' => 'required|string|max:64',
+        ]);
+        if ($validator->fails()) {
+            return code_response(10001, $validator->errors()->first());
+        }
+        if (! $request->has('attribute_options') || empty($request->input('attribute_options'))) {
+            return code_response(10002, '请输入产品选项值');
+        }
+        $options = json_decode($request->input('attribute_options'));
+        $attribute_ids = [];
+        try{
+            DB::beginTransaction();
+            foreach ($options as $attribute_id=>$items) {
+                $attribute_ids[] = $attribute_id;
+               foreach ($items as $option) {
+                   if(ProductAttributeList::where('product_id', $request->input('product_id'))->where('attribute_id', $attribute_id)->where('attribute_value',$option->attribute_value)->exist()) {
+                       continue;
+                   }
+                   $product_attribute_list = new ProductAttributeList();
+                   $product_attribute_list->product_id = $request->input('product_id');
+                   $product_attribute_list->attribute_id = $attribute_id;
+                   $product_attribute_list->attribute_value = $option->attribute_value;
+                   $product_attribute_list->attribute_english_value = $option->attribute_english_value;
+                   $product_attribute_list->save();
+               }
+            }
+            DB::commit();
+            return code_response(10, '添加产品属性值选项成功！', 200, ['data' => Product::attribute_values($request->input('product_id'),$attribute_ids)]);
+        }catch (\Exception $e) {
+            DB::rollBack();
+            return code_response(50001, '添加产品属性值选项失败！');
+        }
     }
 
     public function destory($id)
@@ -216,7 +344,7 @@ class ProductController extends Controller
     }
     public function info($id)
     {
-        $product = Product::with('resources', 'attributes')->find($id);
+        $product = Product::with('resources', 'attributes','suppliers')->find($id);
         $product->attribute_values = Product::attribute_values($id);
         $product->product_attributes = Product::product_attribute_list($id);
         return code_response(10, '获取产品信息成功！', 200, ['data' => $product]);

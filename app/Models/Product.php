@@ -21,30 +21,36 @@ class Product extends Model
         return $this->belongsToMany(Attribute::class, 'product_attribute_list', 'product_id', 'attribute_id')->distinct('attribute_id');
     }
 
+    public function suppliers()
+    {
+        return $this->hasMany(Supplier::class, 'product_id', 'id');
+    }
     public static function attribute_values($id, $attribute_id = null)
     {
-        $list = ProductAttributeList::with('attribute')->where('product_id', $id)->where(function ($query) use ($attribute_id) {
-            if ($attribute_id) {
-                $query->where('attributes.id', $attribute_id);
+        $list = ProductAttributeList::with('attributeListHasAttribute')->where('product_id', $id)->where(function ($query) use ($attribute_id) {
+            if ($attribute_id && is_array($attribute_id)) {
+                $query->whereIn('attribute_id', $attribute_id);
+            } elseif($attribute_id) {
+                $query->where('attribute_id', $attribute_id);
             }
         })->get()->toArray();
         $attributes = [];
         foreach ($list as $value) {
-            if (!isset($attributes[$value['attribute']['id']])) {
-                $attributes[$value['attribute']['id']] = $value['attribute'];
+            if (!isset($attributes[$value['attribute_list_has_attribute']['id']])) {
+                $attributes[$value['attribute_list_has_attribute']['id']] = $value['attribute_list_has_attribute'];
             }
-            $attributes[$value['attribute']['id']]['values'][] = ['id' => $value['id'], 'attribute_value' => $value['attribute_value'],'attribute_english_value' => $value['attribute_english_value']];
+            $attributes[$value['attribute_list_has_attribute']['id']]['values'][] = ['id' => $value['id'], 'attribute_value' => $value['attribute_value'],'attribute_english_value' => $value['attribute_english_value']];
         }
         return $attributes;
     }
 
     public static function product_attribute_list($id)
     {
-        $attribute_value_list = self::attribute_values($id);
+//        $attribute_value_list = self::attribute_values($id);
         $list = ProductAttribute::where('product_id', $id)->get();
         foreach ($list as $value) {
             $ids = explode(',', $value->attribute_list_ids);
-            $value->attribute_list = ProductAttributeList::with('attribute')->whereIn('id', $ids)->get();
+            $value->attribute_list = ProductAttributeList::with('attributeListHasAttribute')->whereIn('id', $ids)->get();
         }
         return $list;
     }
