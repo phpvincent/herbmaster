@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\Admin;
 use App\Models\Product;
 use App\Models\ProductAttribute;
 use App\Models\ProductAttributeList;
@@ -26,8 +27,11 @@ class InventoryController extends Controller
         //判断供应链可查看产品数据
         $admin = Auth::guard('admin')->user();
 
+        //根据组ID获取组成员用户ID
+        $admin_ids = Admin::where('admin_group',$admin->admin_group)->pluck('id')->toArray();
+
         //根据用户所在组id获取产品列表
-        $list = Product::where('admin_group_id',$admin->admin_group)->where('name','like','%'.$search.'%')->whereNull('deleted_at')->get();
+        $list = Product::whereIn('id',$admin_ids)->where('name','like','%'.$search.'%')->get();
 
         return code_response(10, '获取产品列表成功！', 200, $list);
     }

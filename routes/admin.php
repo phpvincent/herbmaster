@@ -47,6 +47,16 @@ Route::namespace('Admin')->group(function(){
             Route::get('permission/index', 'PermissionController@index');    //权限列表
             Route::post('permission/add', 'PermissionController@add');       //添加权限或者修改权限
             Route::get('permission/show', 'PermissionController@show');      //获取角色权限
+            //集合操作
+            Route::get('collection/index', 'CollectionController@index');
+            Route::get('collection/collections_products', 'CollectionController@collections_products');
+            Route::put('collection/set_collection_status', 'CollectionController@set_collection_status');
+            Route::put('collection/set_collection_start_time', 'CollectionController@set_collection_start_time');
+            Route::put('collection/update', 'CollectionController@update');
+            Route::delete('collection/destory', 'CollectionController@destory');
+            Route::post('collection/upload', 'CollectionController@upload');
+            Route::post('collection/add_products', 'CollectionController@add_products');
+            Route::delete('collection/del_products', 'CollectionController@del_products');
 
             //产品
             Route::get('attribute/all', 'AttributeController@index');
