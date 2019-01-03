@@ -75,6 +75,13 @@ class ProductController extends Controller
                 return code_response(10003, '请设置产品Variants！');
             }
             $product_attributes = json_decode($request->input('product_attributes'));
+            if ($product_attributes) {
+                $check_sku = $this->check_sku_unique($product_attributes);
+                if ($check_sku !== true) {
+                    return code_response(10004, 'sku码不能重复！');
+                }
+            }
+
         }
         try {
             DB::beginTransaction();
@@ -100,7 +107,7 @@ class ProductController extends Controller
                     $product_attribute_list = [];
                     foreach ($attribute_options as $attribute_id => $options) {
                         foreach ($options as $value) {
-                            if(ProductAttributeList::where('product_id', $product->id)->where('attribute_id', $attribute_id)->where('attribute_value',$value->attribute_value)->exist()) {
+                            if(ProductAttributeList::where('product_id', $product->id)->where('attribute_id', $attribute_id)->where('attribute_value',$value->attribute_value)->exists()) {
                                 continue;
                             }
                             $options = new ProductAttributeList();
@@ -109,7 +116,7 @@ class ProductController extends Controller
                             $options->attribute_value = $value->attribute_value;
                             $options->attribute_english_value = $value->attribute_english_value;
                             $options->save();
-                            $product_attribute_list[$attribute_id . '_' . $value->name] = $options->id;
+                            $product_attribute_list[$attribute_id . '-' . $value->attribute_value] = $options->id;
                         }
                     }
                 }
@@ -120,7 +127,7 @@ class ProductController extends Controller
                         $product_attribute->product_id = $product->id;
                         $product_attribute->attribute_list_ids = $this->get_product_attribute_ids($attribute, $product_attribute_list);
                         $product_attribute->price = isset($attribute->price) ? $attribute->price : $product->price;
-                        $product_attribute->sku = isset($attribute->sku) ? $attribute->sku : $product->sku;
+                        $product_attribute->sku = $this->set_sku($product, $attribute->sku);
                         $product_attribute->bar_code = isset($attribute->bar_code) ? $attribute->bar_code : $product->bar_code;
                         $product_attribute->num = isset($attribute->num) ? $attribute->num : $product->num;
                         $product_attribute->save();
@@ -144,7 +151,7 @@ class ProductController extends Controller
                     $supplier->phone = $request->input('supplier_phone', '');
                     $supplier->price = $request->input('supplier_price', 0);
                     $supplier->num = $request->input('supplier_num', 0);
-                    $supplier->remark = $request->input('remark', '');
+                    $supplier->remark = $request->input('supplier_remark', '');
                     $supplier->save();
                 }
             }
@@ -210,13 +217,18 @@ class ProductController extends Controller
             'sku' => 'required|string|max:32',
             'bar_code' => 'required|string|max:32',
             'num' => 'required|integer',
+            'attribute_list' => 'required'
         ]);
         if ($validator->fails()) {
             return code_response(10001, $validator->errors()->first());
         }
-        if (! $request->has('attribute_list')) {
-            return code_response(10002, '请输入产品属性选项及值！');
+        $sku = $this->set_sku(Product::find($request->input('product_id')), $request->input('sku'));
+        if (ProductAttribute::where('product_id', $request->input('product_id'))->where('sku', $sku)->exist()) {
+            return code_response(10002, 'sku必须唯一！');
         }
+//        if (! $request->has('attribute_list')) {
+//            return code_response(10002, '请输入产品属性选项及值！');
+//        }
         $attribute_list = json_decode($request->input('attribute_list'));
         $ids = [];
         foreach ($attribute_list as $key=>$value) {
@@ -237,7 +249,7 @@ class ProductController extends Controller
         $product_attribute->product_id = $request->input('product_id');
         $product_attribute->attribute_list_ids = implode(',', $ids);
         $product_attribute->price = $request->input('price');
-        $product_attribute->sku = $request->input('sku');
+        $product_attribute->sku = $sku;
         $product_attribute->bar_code = $request->input('bar_code');
         $product_attribute->num = $request->input('num');
         if ($product_attribute->save()) {
@@ -254,20 +266,26 @@ class ProductController extends Controller
             'sku' => 'required|string|max:32',
             'bar_code' => 'required|string|max:32',
             'num' => 'required|integer',
+            'attribute_list' => 'required'
         ]);
         if ($validator->fails()) {
             return code_response(10001, $validator->errors()->first());
         }
-        if (! $request->has('attribute_list')) {
-            return code_response(10002, '请输入产品属性选项及值！');
+        $sku = $request->input('sku');
+        if (ProductAttribute::where('product_id', $request->input('product_id'))->where('sku', $sku)->exist()) {
+            return code_response(10002, 'sku必须唯一！');
         }
+//        if (! $request->has('attribute_list')) {
+//            return code_response(10002, '请输入产品属性选项及值！');
+//        }
         $attribute_list = json_decode($request->input('attribute_list'));
         $ids = [];
+        $product_attribute = ProductAttribute::find($request->input('id'));
         foreach ($attribute_list as $key=>$value) {
             $id =  ProductAttributeList::where('product_id', $request->input('product_id'))->where('attribute_id', $key)->where('attribute_value', $value->attribute_value)->value('id');
             if(! $id) {
                 $product_attribute_list = new ProductAttributeList();
-                $product_attribute_list->product_id = $request->input('product_id');
+                $product_attribute_list->product_id = $product_attribute->product_id;
                 $product_attribute_list->attribute_id = $key;
                 $product_attribute_list->attribute_value = $value->attribute_value;
                 $product_attribute_list->attribute_english_value = $value->attribute_english_value;
@@ -278,9 +296,9 @@ class ProductController extends Controller
             }
         }
         $product_attribute = ProductAttribute::find($request->input('id'));
-        $product_attribute->attribute_list_ids = implode(',', $ids);;
+        $product_attribute->attribute_list_ids = implode(',', $ids);
         $product_attribute->price = $request->input('price');
-        $product_attribute->sku = $request->input('sku');
+        $product_attribute->sku = $sku;
         $product_attribute->bar_code = $request->input('bar_code');
         $product_attribute->num = $request->input('num');
         if ($product_attribute->save()) {
@@ -312,7 +330,7 @@ class ProductController extends Controller
             foreach ($options as $attribute_id=>$items) {
                 $attribute_ids[] = $attribute_id;
                foreach ($items as $option) {
-                   if(ProductAttributeList::where('product_id', $request->input('product_id'))->where('attribute_id', $attribute_id)->where('attribute_value',$option->attribute_value)->exist()) {
+                   if(ProductAttributeList::where('product_id', $request->input('product_id'))->where('attribute_id', $attribute_id)->where('attribute_value',$option->attribute_value)->exists()) {
                        continue;
                    }
                    $product_attribute_list = new ProductAttributeList();
@@ -344,8 +362,8 @@ class ProductController extends Controller
     }
     public function info($id)
     {
-        $product = Product::with('resources', 'attributes','suppliers')->find($id);
-        $product->attribute_values = Product::attribute_values($id);
+        $product = Product::with('resources', 'attributes','suppliers','collections')->find($id);
+        $product->attribute_options = Product::attribute_values($id);
         $product->product_attributes = Product::product_attribute_list($id);
         return code_response(10, '获取产品信息成功！', 200, ['data' => $product]);
     }
@@ -357,7 +375,7 @@ class ProductController extends Controller
                 return ['code' => 0, 'msg' => '该属性不存在！'];
             }
             foreach ($options as $value) {
-                if (!isset($value->name) || !isset($value->english_name)) {
+                if (!isset($value->attribute_value) || !isset($value->attribute_english_value)) {
                     return ['code' => 0, 'msg' => '属性值及英文属性值均不能为空!'];
                 }
             }
@@ -365,6 +383,22 @@ class ProductController extends Controller
         return true;
     }
 
+    private function check_sku_unique($attributes)
+    {
+        $skus = array_column($attributes,'sku');
+        if (in_array('',$skus)) {
+            return false;
+        }
+        if (count(array_unique($skus)) < count($skus)) {
+            return false;
+        }
+
+        return true;
+    }
+    private function set_sku($product, $sku)
+    {
+        return $product->type .'-'.  $product->id .'-'.$sku;
+    }
     private function get_product_attribute_ids($attributes, $product_attribute_list)
     {
         $ids = [];

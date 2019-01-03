@@ -25,6 +25,11 @@ class Product extends Model
     {
         return $this->hasMany(Supplier::class, 'product_id', 'id');
     }
+
+    public function collections()
+    {
+        return $this->belongsToMany(Collection::class, 'collections_products', 'products_id', 'collections_id');
+    }
     public static function attribute_values($id, $attribute_id = null)
     {
         $list = ProductAttributeList::with('attributeListHasAttribute')->where('product_id', $id)->where(function ($query) use ($attribute_id) {
@@ -39,7 +44,7 @@ class Product extends Model
             if (!isset($attributes[$value['attribute_list_has_attribute']['id']])) {
                 $attributes[$value['attribute_list_has_attribute']['id']] = $value['attribute_list_has_attribute'];
             }
-            $attributes[$value['attribute_list_has_attribute']['id']]['values'][] = ['id' => $value['id'], 'attribute_value' => $value['attribute_value'],'attribute_english_value' => $value['attribute_english_value']];
+            $attributes[$value['attribute_list_has_attribute']['id']]['options'][] = ['id' => $value['id'], 'attribute_value' => $value['attribute_value'],'attribute_english_value' => $value['attribute_english_value']];
         }
         return $attributes;
     }
