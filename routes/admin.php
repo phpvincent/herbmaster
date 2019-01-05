@@ -66,8 +66,11 @@ Route::namespace('Admin')->group(function(){
             Route::get('product/index', 'ProductController@index');
             Route::post('product/add', 'ProductController@add');
             Route::post('product/edit', 'ProductController@edit');
-            Route::post('product/destory/{id}', 'ProductController@destory');
-            Route::post('product/info/{id}', 'ProductController@info');
+            Route::delete('product/destory/{id}', 'ProductController@destory');
+            Route::get('product/info/{id}', 'ProductController@info');
+            Route::post('product/variant/add', 'ProductController@add_variant');
+            Route::put('product/variant/edit', 'ProductController@edit_variant');
+            Route::post('product/option/add', 'ProductController@add_option');
 
             //库存
             Route::get('inventory/index', 'InventoryController@index');

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Validator;
 
 class AttributeController extends Controller
 {
-    public function inedx()
+    public function index()
     {
         $attributes = Attribute::all();
         return code_response(10, '获取属性列表成功！', 200, ['data' => $attributes]);
