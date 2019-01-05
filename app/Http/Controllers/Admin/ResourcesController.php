@@ -16,7 +16,7 @@ class ResourcesController extends Controller
      * @return [type:post]           [文件上传]
      */
     public function upload(Request $request)
-    { 
+    { dd($request->all());
     	if(!$request->has('cate_id')||$request->input('cate_id')==null){
     		$cate_id=0;
     	}
