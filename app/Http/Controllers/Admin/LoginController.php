@@ -31,7 +31,7 @@ class LoginController extends Controller
      */
     public function login(Request $request)
     {
-        $input = $request->except(['captcha','catKey']);
+        $input = $request->except(['captcha','catKey','_url']);
 
         //字段验证
         $validator = Validator::make($input, [
@@ -56,7 +56,6 @@ class LoginController extends Controller
 //        if (!captcha_api_check($request->captcha, $request->catKey)){
 //            return code_response(10006,'图片验证码错误');
 //        }
-        dd($input);
         //账号密码验证
         if(!$token = Auth::guard('admin')->attempt($input)){
             return code_response(10004,'账号或密码错误');
