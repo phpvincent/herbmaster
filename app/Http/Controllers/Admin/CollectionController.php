@@ -22,7 +22,7 @@ class CollectionController extends Controller
    				$query->where('site_id',$request->input('site_id'));
    			}
    		})
-   		->where('start_time','<',Carbon::now()->toDateTimeString())
+   		//->where('start_time','<',Carbon::now()->toDateTimeString())
    		->paginate($request->input('limit',15))->toArray();
     	return code_response(10, 'get Collections list success',200,$data);
     }
@@ -31,9 +31,11 @@ class CollectionController extends Controller
     	if(!$request->has('collections_id')||(int)$request->input('collections_id')!=$request->input('collections_id'))     		return code_response(20201, 'collections_id not allowed');
     	$collection=Collection::find($request->input('collections_id'));
     	if($collection==null) return code_response(20202, 'collection not find');
-    	if($collection->status!=0||strtotime($collection->start_time)>time()){
-    		return code_response(20203, 'collection is not using');
-    	}
+        if($request->input('is_admin',0)==0){
+            if($collection->status!=0||strtotime($collection->start_time)>time()){
+                return code_response(20203, 'collection is not using');
+            }
+        }
     	$data=Collection_product::where(function($query)use($request){
     		$query->where('collections_id',$request->input('collections_id'));
     	})
@@ -84,7 +86,7 @@ class CollectionController extends Controller
     {
     	if(!$request->has('name')||!$request->has('status')||!$request->has('site_id')||!$request->has('img')||!$request->has('ids')) 	return code_response(20214, 'request data missing');  
     	if(Resource::find($request->input('img'))==null) return code_response(20215, 'img_id not found');  
-    	if($request->has('start_time')&&strtotime($request->input('start_time'))<=time())	return code_response(20216, 'start_time not allowed');
+    	if($request->has('start_time')&&strtotime($request->input('start_time'))<time()-10)	return code_response(20216, 'start_time not allowed');
     	if(!$request->has('start_time')) request()->offsetSet('start_time',Carbon::now()->toDateTimeString());
     	if((int)$request->input('status')!=$request->input('status')) return code_response(20217, 'status code not allowed');
     	try{

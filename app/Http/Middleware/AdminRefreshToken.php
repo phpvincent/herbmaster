@@ -85,6 +85,7 @@ class AdminRefreshToken extends BaseMiddleware
      */
     public function handle($request, Closure $next)
     {   
+        dd('?');
         // 检查此次请求中是否带有 token，如果没有则抛出异常。
         $authToken = Auth::guard('admin')->getToken();
         if(!$authToken){
