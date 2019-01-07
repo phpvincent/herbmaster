@@ -70,6 +70,7 @@ class ResourcesController extends Controller
     	$resources->admin_id=$admin_id;
     	$resources->cate_id=$cate_id;
     	$resources->site_id=$site_id;
+      $resources->name=$filename;
     	//$resources->path=Storage::disk('resources')->url($newname);
     	$resources->path=asset('storage/resources/'.$newname);
     	$resources->thum_path=$thum_path;
@@ -93,7 +94,11 @@ class ResourcesController extends Controller
    			if($request->has('site_id')){
    				$query->where('site_id',$request->input('site_id'));
    			}
+        if($request->has('name')){
+          $query->where('name','like',"%".$request->input('name')."%");
+        }
    		})
+      ->orderBy('created_at','desc')
    		->paginate($request->input('limit',15))->toArray();
     	return code_response(10, 'get file list success',200,$data);
    }
