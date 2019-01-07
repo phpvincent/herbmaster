@@ -41,7 +41,7 @@ class ResourcesController extends Controller
     	$newname=$dir.'\\'.$filename;*/
     	$newname=$type.'/'.$timestring.$filename;
       if(in_array($type,Resource::get_img_type())){
-      	$manager = new Image(array('driver' => 'GD'));
+      	$manager = new Image(array('driver' => 'gd'));
         $bool=$manager->make($file)->insert(asset('storage/water.png'),'top-left', 15, 10)->save(storage_path('app/public/resources').'/'.$newname);
       	//$bool=Storage::disk('resources')->put($newname,file_get_contents($file->getRealPath()));
       	if(!$bool) return code_response(20104, 'file upload faild');
@@ -50,7 +50,7 @@ class ResourcesController extends Controller
             //制作缩略图
             $thum_name=$type.'/'.'thum-'.$timestring.$filename;
             $thum_path=storage_path('app/public/resources').'/'.$thum_name;
-            $manager = new Image(array('driver' => 'GD'));
+            $manager = new Image(array('driver' => 'gd'));
             $width=$request->input('width',300);
             $height=$request->input('height',200);
             $image = $manager->make(storage_path('app/public/resources').'/'.$newname)->resize($width,$height)->save($thum_path);
