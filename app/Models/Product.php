@@ -10,6 +10,13 @@ class Product extends Model
     protected $table = 'products';
     protected $primaryKey = 'id';
     public $timestamps = true;
+    protected $appends = ['product_type_name'];
+
+    public function getProductTypeNameAttribute()
+    {
+        $id = $this->attributes['type'];
+        return ProductType::where('id', $id)->value('name');
+    }
 
     public function resources()
     {

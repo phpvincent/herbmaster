@@ -6,6 +6,7 @@ use App\Models\Attribute;
 use App\Models\Product;
 use App\Models\ProductAttribute;
 use App\Models\ProductAttributeList;
+use App\Models\ProductType;
 use App\Models\Resource;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
@@ -363,6 +364,7 @@ class ProductController extends Controller
     public function info($id)
     {
         $product = Product::with('resources', 'attributes','suppliers','collections')->find($id);
+        $product->type_name = ProductType::where('id', $product->type)->value('name');
         $product->attribute_options = Product::attribute_values($id);
         $product->product_attributes = Product::product_attribute_list($id);
         return code_response(10, '获取产品信息成功！', 200, ['data' => $product]);
