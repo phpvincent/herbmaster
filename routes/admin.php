@@ -72,6 +72,8 @@ Route::namespace('Admin')->group(function(){
             Route::put('product/variant/edit', 'ProductController@edit_variant');
             Route::post('product/option/add', 'ProductController@add_option');
 
+            Route::get('product_type/all', 'ProductTypeController@index');
+
             //库存
             Route::get('inventory/index', 'InventoryController@index');
             Route::get('inventory/show', 'InventoryController@show');

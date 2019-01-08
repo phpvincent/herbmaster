@@ -16,6 +16,10 @@ class Product extends Model
         return $this->belongsToMany(Resource::class, 'product_resource', 'product_id', 'resource_id');
     }
 
+    public function index_thumb()
+    {
+        return $this->belongsToMany(Resource::class, 'product_resource', 'product_id', 'resource_id')->where('is_index',1);
+    }
     public function attributes()
     {
         return $this->belongsToMany(Attribute::class, 'product_attribute_list', 'product_id', 'attribute_id')->distinct('attribute_id');
