@@ -24,7 +24,7 @@ class ProductController extends Controller
         $type = $request->input('type', 0);
         $status = $request->has('status') ? $request->input('status') : false;
         $per_page = $request->input('per_page', 15);
-        $product = Product::where('site_id', $site_id)->where(function ($query) use ($search) {
+        $product = Product::with('index_thumb:id,path,thum_path')->where('site_id', $site_id)->where(function ($query) use ($search) {
             if ($search) {
                 $query->where('name', 'like', '%' . $search . '%')->orWhere('english_name', 'like', '%' . $search . '%');
             }
