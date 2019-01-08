@@ -10,14 +10,19 @@ class Product extends Model
     protected $table = 'products';
     protected $primaryKey = 'id';
     public $timestamps = true;
-    protected $appends = ['product_type_name'];
+    protected $appends = ['product_type_name', 'index_thum_path'];
 
     public function getProductTypeNameAttribute()
     {
         $id = $this->attributes['type'];
         return ProductType::where('id', $id)->value('name');
     }
-
+    public function getIndexThumPathAttribute()
+    {
+        $id = $this->attributes['id'];
+        return DB::table('resources as r')->join('product_resource as pr', 'r.id', '=', 'pr.resource_id', 'left')
+            ->where('pr.product_id', $id)->where('pr.is_index', 1)->value('r.thum_path');
+    }
     public function resources()
     {
         return $this->belongsToMany(Resource::class, 'product_resource', 'product_id', 'resource_id');
@@ -25,7 +30,7 @@ class Product extends Model
 
     public function index_thumb()
     {
-        return $this->belongsToMany(Resource::class, 'product_resource', 'product_id', 'resource_id')->where('is_index',1);
+        return $this->belongsToMany(Resource::class, 'product_resource', 'product_id', 'resource_id')->where('is_index',1)->limit(1);
     }
     public function attributes()
     {
