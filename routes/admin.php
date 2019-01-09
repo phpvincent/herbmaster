@@ -31,18 +31,18 @@ Route::namespace('Admin')->group(function(){
 
             //管理员
             Route::get('admin/admins', 'AdminController@index');
-            Route::get('admin/info/{id}', 'AdminController@info');
+            Route::get('admin/info', 'AdminController@info');
             Route::get('admin/my', 'AdminController@my');
             Route::post('admin/add', 'AdminController@add');
             Route::put('admin/edit', 'AdminController@edit');
             Route::put('admin/change_password', 'AdminController@changePassword');
-            Route::delete('admin/delete/{id}', 'AdminController@destory');
+            Route::delete('admin/delete', 'AdminController@destory');
 
             Route::get('admin_group/all', 'AdminGroupController@all');
-            Route::get('admin_group/info/{id}', 'AdminGroupController@info');
+            Route::get('admin_group/info', 'AdminGroupController@info');
             Route::post('admin_group/add', 'AdminGroupController@add');
             Route::put('admin_group/edit', 'AdminGroupController@edit');
-            Route::delete('admin_group/delete/{id}', 'AdminGroupController@destory');
+            Route::delete('admin_group/delete', 'AdminGroupController@destory');
             //权限操作
             Route::get('permission/index', 'PermissionController@index');    //权限列表
             Route::post('permission/add', 'PermissionController@add');       //添加权限或者修改权限
@@ -62,17 +62,23 @@ Route::namespace('Admin')->group(function(){
             Route::get('attribute/all', 'AttributeController@index');
             Route::post('attribute/add', 'AttributeController@add');
             Route::put('attribute/edit', 'AttributeController@edit');
-            Route::put('attribute/delete/{id}', 'AttributeController@destory');
+            Route::delete('attribute/delete', 'AttributeController@destory');
             Route::get('product/index', 'ProductController@index');
             Route::post('product/add', 'ProductController@add');
-            Route::post('product/edit', 'ProductController@edit');
-            Route::delete('product/destory/{id}', 'ProductController@destory');
-            Route::get('product/info/{id}', 'ProductController@info');
+            Route::put('product/edit', 'ProductController@edit');
+            Route::delete('product/destory', 'ProductController@destory');
+            Route::get('product/info', 'ProductController@info');
             Route::post('product/variant/add', 'ProductController@add_variant');
             Route::put('product/variant/edit', 'ProductController@edit_variant');
             Route::post('product/option/add', 'ProductController@add_option');
-
+            Route::delete('product/tag/delete', 'ProductController@delete_tags');
+            Route::delete('supplier/delete', 'SupplierController@destory');
+            Route::put('supplier/edit', 'SupplierController@edit');
             Route::get('product_type/all', 'ProductTypeController@index');
+            //标签
+            Route::post('tag/add', 'TagController@add');
+            Route::get('tag/index', 'TagController@index');
+            Route::delete('tag/delete', 'TagController@destory');
 
             //库存
             Route::get('inventory/index', 'InventoryController@index');

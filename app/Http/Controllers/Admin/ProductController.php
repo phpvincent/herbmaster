@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Attribute;
+use App\Models\Collection_product;
 use App\Models\Product;
 use App\Models\ProductAttribute;
 use App\Models\ProductAttributeList;
 use App\Models\ProductType;
 use App\Models\Resource;
 use App\Models\Supplier;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -107,7 +109,7 @@ class ProductController extends Controller
                     $product_attribute_list = [];
                     foreach ($attribute_options as $attribute_id => $options) {
                         foreach ($options as $value) {
-                            if(ProductAttributeList::where('product_id', $product->id)->where('attribute_id', $attribute_id)->where('attribute_value',$value->attribute_value)->exists()) {
+                            if (ProductAttributeList::where('product_id', $product->id)->where('attribute_id', $attribute_id)->where('attribute_value', $value->attribute_value)->exists()) {
                                 continue;
                             }
                             $options = new ProductAttributeList();
@@ -154,6 +156,32 @@ class ProductController extends Controller
                     $supplier->remark = $request->input('supplier_remark', '');
                     $supplier->save();
                 }
+
+                //添加标签
+                if ($request->has('product_tags') && !empty($request->input('product_tags'))) {
+                    $product_tags = json_decode($request->input('product_tags'));
+                    if ($product_tags) {
+                        foreach ($product_tags as $product_tag) {
+                            DB::table('product_tag')->insert(['product_id' => $product->id, 'tag_id' => $product_tag]);
+                        }
+                    }
+                }
+                //添加集合
+                if ($request->has('product_collections') && !empty($request->input('product_collections'))) {
+                    $product_collections = json_decode($request->input('product_collections'));
+                    if ($product_collections) {
+                        foreach ($product_collections as $product_collection) {
+                            DB::table('collections_products')->insert([
+                                'products_id' => $product->id,
+                                'collections_id' => $product_collection->collection_id,
+                                'remark' => $product_collection->remark,
+                                'sort' => $product_collection->sort,
+                                'created_at' => Carbon::now(),
+                                'updated_at' => Carbon::now(),
+                            ]);
+                        }
+                    }
+                }
             }
             DB::commit();
         } catch (\Exception $e) {
@@ -168,11 +196,11 @@ class ProductController extends Controller
     public function edit(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'site_id' => 'required|exists:sites,id',
+//            'site_id' => 'required|exists:sites,id',
             'id' => 'required|integer|exists:products,id',
-            'name' => ['required', 'string', 'max:64', Rule::unique('products')->where('site_id', $request->input('site_id'))->ignore($request->input('id'))],
+            'name' => ['required', 'string', 'max:64', Rule::unique('products')->where('site_id', $request->input('site_id'))->where('id', '<>', $request->input('id'))],
             'english_name' => 'required|string|max:64',
-            'description' => 'required',
+            'description' => 'required:string',
             'price' => 'required|numeric',
             'cost_price' => 'required|numeric',
             'original_price' => 'required|numeric',
@@ -204,7 +232,7 @@ class ProductController extends Controller
         $product->status = $request->input('status');
         if ($product->save()) {
             return code_response(10, '修改产品成功！', 200, ['data' => $product]);
-        }else{
+        } else {
             return code_response(50001, '修改产品失败！');
         }
     }
@@ -231,9 +259,9 @@ class ProductController extends Controller
 //        }
         $attribute_list = json_decode($request->input('attribute_list'));
         $ids = [];
-        foreach ($attribute_list as $key=>$value) {
-            $id =  ProductAttributeList::where('product_id', $request->input('product_id'))->where('attribute_id', $key)->where('attribute_value', $value->attribute_value)->value('id');
-            if(! $id) {
+        foreach ($attribute_list as $key => $value) {
+            $id = ProductAttributeList::where('product_id', $request->input('product_id'))->where('attribute_id', $key)->where('attribute_value', $value->attribute_value)->value('id');
+            if (!$id) {
                 $product_attribute_list = new ProductAttributeList();
                 $product_attribute_list->product_id = $request->input('product_id');
                 $product_attribute_list->attribute_id = $key;
@@ -254,10 +282,11 @@ class ProductController extends Controller
         $product_attribute->num = $request->input('num');
         if ($product_attribute->save()) {
             return code_response(10, '添加产品变种成功！', 200, ['data' => $product_attribute]);
-        }else{
+        } else {
             return code_response(50001, '修改产品变种失败！');
         }
     }
+
     public function edit_variant(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -281,9 +310,9 @@ class ProductController extends Controller
         $attribute_list = json_decode($request->input('attribute_list'));
         $ids = [];
         $product_attribute = ProductAttribute::find($request->input('id'));
-        foreach ($attribute_list as $key=>$value) {
-            $id =  ProductAttributeList::where('product_id', $request->input('product_id'))->where('attribute_id', $key)->where('attribute_value', $value->attribute_value)->value('id');
-            if(! $id) {
+        foreach ($attribute_list as $key => $value) {
+            $id = ProductAttributeList::where('product_id', $request->input('product_id'))->where('attribute_id', $key)->where('attribute_value', $value->attribute_value)->value('id');
+            if (!$id) {
                 $product_attribute_list = new ProductAttributeList();
                 $product_attribute_list->product_id = $product_attribute->product_id;
                 $product_attribute_list->attribute_id = $key;
@@ -303,11 +332,12 @@ class ProductController extends Controller
         $product_attribute->num = $request->input('num');
         if ($product_attribute->save()) {
             return code_response(10, '修改产品变种成功！', 200, ['data' => $product_attribute]);
-        }else{
+        } else {
             return code_response(50001, '修改产品变种失败！');
         }
 
     }
+
     public function add_option(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -320,53 +350,75 @@ class ProductController extends Controller
         if ($validator->fails()) {
             return code_response(10001, $validator->errors()->first());
         }
-        if (! $request->has('attribute_options') || empty($request->input('attribute_options'))) {
+        if (!$request->has('attribute_options') || empty($request->input('attribute_options'))) {
             return code_response(10002, '请输入产品选项值');
         }
         $options = json_decode($request->input('attribute_options'));
         $attribute_ids = [];
-        try{
+        try {
             DB::beginTransaction();
-            foreach ($options as $attribute_id=>$items) {
+            foreach ($options as $attribute_id => $items) {
                 $attribute_ids[] = $attribute_id;
-               foreach ($items as $option) {
-                   if(ProductAttributeList::where('product_id', $request->input('product_id'))->where('attribute_id', $attribute_id)->where('attribute_value',$option->attribute_value)->exists()) {
-                       continue;
-                   }
-                   $product_attribute_list = new ProductAttributeList();
-                   $product_attribute_list->product_id = $request->input('product_id');
-                   $product_attribute_list->attribute_id = $attribute_id;
-                   $product_attribute_list->attribute_value = $option->attribute_value;
-                   $product_attribute_list->attribute_english_value = $option->attribute_english_value;
-                   $product_attribute_list->save();
-               }
+                foreach ($items as $option) {
+                    if (ProductAttributeList::where('product_id', $request->input('product_id'))->where('attribute_id', $attribute_id)->where('attribute_value', $option->attribute_value)->exists()) {
+                        continue;
+                    }
+                    $product_attribute_list = new ProductAttributeList();
+                    $product_attribute_list->product_id = $request->input('product_id');
+                    $product_attribute_list->attribute_id = $attribute_id;
+                    $product_attribute_list->attribute_value = $option->attribute_value;
+                    $product_attribute_list->attribute_english_value = $option->attribute_english_value;
+                    $product_attribute_list->save();
+                }
             }
             DB::commit();
-            return code_response(10, '添加产品属性值选项成功！', 200, ['data' => Product::attribute_values($request->input('product_id'),$attribute_ids)]);
-        }catch (\Exception $e) {
+            return code_response(10, '添加产品属性值选项成功！', 200, ['data' => Product::attribute_values($request->input('product_id'), $attribute_ids)]);
+        } catch (\Exception $e) {
             DB::rollBack();
             return code_response(50001, '添加产品属性值选项失败！');
         }
     }
 
-    public function destory($id)
+    public function destory(Request $request)
     {
+        $id = $request->input('id', 0);
         if (!$id || !Product::where('id', $id)->exists()) {
             return code_response(10001, '该产品不存在失败！');
         }
-        if(Product::destroy($id)) {
+        if (Product::destroy($id)) {
             return code_response(10, '删除产品成功！');
-        }else{
+        } else {
             return code_response(50001, '删除产品失败！');
         }
     }
-    public function info($id)
+
+    public function info(Request $request)
     {
-        $product = Product::with('resources', 'attributes','suppliers','collections')->find($id);
+        $id = $request->input('id', 0);
+        $product = Product::with('resources', 'attributes', 'suppliers', 'collections')->find($id);
         $product->type_name = ProductType::where('id', $product->type)->value('name');
         $product->attribute_options = Product::attribute_values($id);
         $product->product_attributes = Product::product_attribute_list($id);
         return code_response(10, '获取产品信息成功！', 200, ['data' => $product]);
+    }
+
+    public function delete_tags(Request $request)
+    {
+        $tag_ids = json_decode($request->input('tag_ids'));
+        $id = $request->input('id');
+        if ($tag_ids){
+            try{
+                DB::beginTransaction();
+                foreach ($tag_ids as $tag_id){
+                    DB::table('product_tag')->where('product_id', $id)->where('tag_id', $tag_id)->delete();
+                }
+                DB::commit();
+            }catch (\Exception $e){
+                DB::rollBack();
+                return code_response(20213, $e->getMessage());
+            }
+        }
+        return code_response(10, '删除产品标签成功！');
     }
 
     private function check_attribute_values($attribute_values)
@@ -386,8 +438,8 @@ class ProductController extends Controller
 
     private function check_sku_unique($attributes)
     {
-        $skus = array_column($attributes,'sku');
-        if (in_array('',$skus)) {
+        $skus = array_column($attributes, 'sku');
+        if (in_array('', $skus)) {
             return false;
         }
         if (count(array_unique($skus)) < count($skus)) {
@@ -396,10 +448,12 @@ class ProductController extends Controller
 
         return true;
     }
+
     private function set_sku($product, $sku)
     {
-        return $product->type .'-'.  $product->id .'-'.$sku;
+        return $product->type . '-' . $product->id . '-' . $sku;
     }
+
     private function get_product_attribute_ids($attributes, $product_attribute_list)
     {
         $ids = [];

@@ -47,8 +47,9 @@ class AttributeController extends Controller
         }
     }
 
-    public function destory($id)
+    public function destory(Request $request)
     {
+        $id = $request->input('id');
         if (!$id || !Attribute::where('id', $id)->exists()) {
             return code_response(10001, '该属性不存在！');
         }

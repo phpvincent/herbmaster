@@ -46,6 +46,11 @@ class Product extends Model
     {
         return $this->belongsToMany(Collection::class, 'collections_products', 'products_id', 'collections_id');
     }
+
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'product_tag', 'product_id', 'tag_id');
+    }
     public static function attribute_values($id, $attribute_id = null)
     {
         $list = ProductAttributeList::with('attributeListHasAttribute')->where('product_id', $id)->where(function ($query) use ($attribute_id) {

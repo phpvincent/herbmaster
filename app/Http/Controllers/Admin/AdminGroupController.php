@@ -25,8 +25,9 @@ class AdminGroupController extends Controller
      * @param $id
      * @return \Illuminate\Contracts\Routing\ResponseFactory|\Symfony\Component\HttpFoundation\Response
      */
-    public function info($id)
+    public function info(Request $request)
     {
+        $id = $request->input('id');
         if (!is_numeric($id) || !$id) {
             return code_response(10001, '参数错误！');
         }
@@ -91,8 +92,9 @@ class AdminGroupController extends Controller
      * @param $id
      * @return \Illuminate\Contracts\Routing\ResponseFactory|\Symfony\Component\HttpFoundation\Response
      */
-    public function destory($id)
+    public function destory(Request $request)
     {
+        $id = $request->input('id');
         $validator = Validator::make([$id], [
             'id' => 'exists:admin_group,id']);
         if ($validator->fails()) {
