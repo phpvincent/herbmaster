@@ -27,6 +27,8 @@ class ProductController extends Controller
         $type = $request->input('type', 0);
         $status = $request->has('status') ? $request->input('status') : false;
         $per_page = $request->input('per_page', 15);
+        $order = $request->input('order', 'id');
+        $by = $request->input('by', 'asc');
         $products = Product::where('site_id', $site_id)->where(function ($query) use ($search) {
             if ($search) {
                 $query->where('name', 'like', '%' . $search . '%')->orWhere('english_name', 'like', '%' . $search . '%');
@@ -39,7 +41,7 @@ class ProductController extends Controller
             if ($status !== false) {
                 $query->where('status', $status);
             }
-        })->paginate($per_page);
+        })->orderBy($order,$by)->paginate($per_page);
         return code_response(10, '获取产品列表成功！', 200, ['data' => $products]);
     }
 
