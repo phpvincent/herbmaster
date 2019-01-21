@@ -10,12 +10,28 @@ class Product extends Model
     protected $table = 'products';
     protected $primaryKey = 'id';
     public $timestamps = true;
+    protected $appends = ['product_type_name', 'index_thum_path'];
 
+    public function getProductTypeNameAttribute()
+    {
+        $id = $this->attributes['type'];
+        return ProductType::where('id', $id)->value('name');
+    }
+    public function getIndexThumPathAttribute()
+    {
+        $id = $this->attributes['id'];
+        return DB::table('resources as r')->join('product_resource as pr', 'r.id', '=', 'pr.resource_id', 'left')
+            ->where('pr.product_id', $id)->where('pr.is_index', 1)->value('r.thum_path');
+    }
     public function resources()
     {
         return $this->belongsToMany(Resource::class, 'product_resource', 'product_id', 'resource_id');
     }
 
+    public function index_thumb()
+    {
+        return $this->belongsToMany(Resource::class, 'product_resource', 'product_id', 'resource_id')->where('is_index',1)->limit(1);
+    }
     public function attributes()
     {
         return $this->belongsToMany(Attribute::class, 'product_attribute_list', 'product_id', 'attribute_id')->distinct('attribute_id');
@@ -29,6 +45,11 @@ class Product extends Model
     public function collections()
     {
         return $this->belongsToMany(Collection::class, 'collections_products', 'products_id', 'collections_id');
+    }
+
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'product_tag', 'product_id', 'tag_id');
     }
     public static function attribute_values($id, $attribute_id = null)
     {
