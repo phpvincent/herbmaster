@@ -4,7 +4,7 @@ namespace App\Http\Controllers\admin;
 
 use Illuminate\Http\Request;
 use App\Models\Collection;
-use App\Models\Collection_product;
+use App\Models\CollectionProduct;
 use App\Models\Resource;
 use Carbon\Carbon;
 use \DB;
@@ -15,12 +15,19 @@ class CollectionController extends Controller
     public function index(Request $request)
     {
     	$data=Collection::where(function($query)use($request){
-   			if($request->has('status')){
+   			if($request->has('status')&&is_numeric($request->input('instype'))){
    				$query->where('status',$request->input('cate_id'));
    			}
-   			if($request->has('site_id')){
+   			if($request->has('site_id')&&is_numeric($request->input('instype'))){
    				$query->where('site_id',$request->input('site_id'));
    			}
+            if($request->has('name')){
+                $query->where('name','like',"%".$request->input('name')."%");
+            }
+
+            if($request->has('instype')&&$request->input('instype')!=null&&is_numeric($request->input('instype'))){
+                $query->where('instype',$request->input('instype'));
+            }
    		})
    		//->where('start_time','<',Carbon::now()->toDateTimeString())
    		->paginate($request->input('limit',15))->toArray();
@@ -36,9 +43,40 @@ class CollectionController extends Controller
                 return code_response(20203, 'collection is not using');
             }
         }
-    	$data=Collection_product::where(function($query)use($request){
+        //获取排序规则
+        if($request->has('sort_type')){
+                $asc=substr($request->input('sort_type','default_desc'),strripos($request->input('sort_type','default_desc'),"_")+1);
+                $sort_art=substr($request->input('sort_type','default_desc'),0,strrpos($request->input('sort_type','default_desc'),"_"));
+                switch ($request->input('sort_type')) {
+                    case 'time':
+                      $sort_art='products.created_at';
+                        break;
+                    case 'price':
+                      $sort_art='products.price';
+                        break;
+                    case 'num':
+                      $sort_art='products.num';
+                        break;
+                    case 'sort':
+                      $sort_art='collections_products.sort';
+                        break;
+                    default:
+                      $sort_art='collections_products.sort';
+                        break;
+                }
+            }else{
+                $sort_type=$collection->get_sort_type()['sort_type'];
+                $asc=$collection->get_sort_type()['asc']
+                $sort_art='collections_products.sort';
+                $asc='desc';
+            }
+    	$data=CollectionProduct::
+        select('collections_products.*','products.created_at','products.price','products.num')
+        ->leftjoin('products','collections_products.products_id','=','products.id')
+        ->where(function($query)use($request){
     		$query->where('collections_id',$request->input('collections_id'));
     	})
+        ->orderBy($sort_art,$asc)
     	->paginate($request->input('limit',15))->toArray();
     	return code_response(10, 'get Collections product list success',200,$data);
     }
@@ -73,7 +111,7 @@ class CollectionController extends Controller
     		DB::beginTransaction();
     		$msg=Collection::where('id',$request->input('collections_id'))->delete();  
     		if($msg==false) throw new Exception("collection data delete failed");
-    		$msg1=Collection_product::where('collections_id',$request->input('collections_id'))->delete();
+    		$msg1=CollectionProduct::where('collections_id',$request->input('collections_id'))->delete();
     		if($msg==false) throw new Exception("collection data delete failed");
     		DB::commit();
     	} catch (\Exception $e) {
@@ -95,9 +133,9 @@ class CollectionController extends Controller
     		if($collections_id==false) throw new Exception("collection data insert failed");
     		$ids=json_decode($request->input('ids'),true);
     		foreach($ids as $k => $v){
-    			if(Collection_product::where([['collections_id',$collections_id],['products_id',$v['products_id']]])->first()!=null) continue;
-    			$msg=Collection_product::insert(['collections_id'=>$collections_id,'products_id'=>$v['products_id'],'remark'=>isset($v['remark'])?$v['remark']:null,'sort'=>isset($v['sort'])?$v['sort']:0]);
-    			if($msg==false) throw new Exception("Collection_products data insert failed");
+    			if(CollectionProduct::where([['collections_id',$collections_id],['products_id',$v['products_id']]])->first()!=null) continue;
+    			$msg=CollectionProduct::insert(['collections_id'=>$collections_id,'products_id'=>$v['products_id'],'remark'=>isset($v['remark'])?$v['remark']:null,'sort'=>isset($v['sort'])?$v['sort']:0]);
+    			if($msg==false) throw new Exception("CollectionProducts data insert failed");
     		}   
     		DB::commit();		
     	}catch(\Exception $e) {
@@ -117,9 +155,9 @@ class CollectionController extends Controller
     		DB::beginTransaction();
     		$ids=json_decode($request->input('products_ids'),true);
     		foreach($ids as $k => $v){
-    			if(Collection_product::where([['collections_id',$collections_id],['products_id',$v['products_id']]])->first()!=null) continue;
-    			$msg=Collection_product::insert(['collections_id'=>$collections_id,'products_id'=>$v['products_id'],'remark'=>isset($v['remark'])?$v['remark']:null,'sort'=>isset($v['sort'])?$v['sort']:0]);
-    			if($msg==false) throw new Exception("Collection_products data insert failed");
+    			if(CollectionProduct::where([['collections_id',$collections_id],['products_id',$v['products_id']]])->first()!=null) continue;
+    			$msg=CollectionProduct::insert(['collections_id'=>$collections_id,'products_id'=>$v['products_id'],'remark'=>isset($v['remark'])?$v['remark']:null,'sort'=>isset($v['sort'])?$v['sort']:0]);
+    			if($msg==false) throw new Exception("CollectionProducts data insert failed");
     		}   
     		DB::commit();		
     	}catch(\Exception $e) {
@@ -136,7 +174,7 @@ class CollectionController extends Controller
         try{
             DB::beginTransaction();
             foreach($ids as $k => $v){
-                $msg=Collection_product::where([['collections_id',$request->input('collections_id')],['products_id',$v]])->delete();
+                $msg=CollectionProduct::where([['collections_id',$request->input('collections_id')],['products_id',$v]])->delete();
                 if($msg==false) throw new Exception("products delete failed");
             }
             DB::commit();

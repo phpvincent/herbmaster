@@ -116,9 +116,9 @@ class AdminRefreshToken extends BaseMiddleware
 
             //==============================================================================================================
             //刷新Token
-            if(($time - time()) < 10*60 && ($time - time()) > 0){
+            if(($time - time()) < 600 && ($time - time()) > 0){
                 $token = Auth::guard('admin')->refresh();
-                if(!$token){
+                if($token){
                     $request->headers->set('Authorization', 'Bearer '.$token);
                 }else{
                     return code_response(10002, 'The token has been blacklisted', 401);
