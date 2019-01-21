@@ -41,7 +41,7 @@ class ProductController extends Controller
             if ($status !== false) {
                 $query->where('status', $status);
             }
-        })->orderBy($order,$by)->paginate($per_page);
+        })->orderBy($order, $by)->paginate($per_page);
         return code_response(10, '获取产品列表成功！', 200, ['data' => $products]);
     }
 
@@ -239,6 +239,48 @@ class ProductController extends Controller
         }
     }
 
+    public function edit_resources(Request $request)
+    {
+        $product_id = $request->input('id');
+        $product_resources = json_decode($request->input('product_resources'));
+        if ($product_resources) {
+            try {
+                DB::beginTransaction();
+                foreach ($product_resources as $resource) {
+                    if (DB::table('product_resource')->where('product_id', $product_id)->where('resource_id', $resource->resource_id)->exists()) {
+                        DB::table('product_resource')->where('product_id', $product_id)->where('resource_id', $resource->resource_id)->update(['is_index' => $resource->is_index, 'sort' => $resource->sort]);
+                    } else {
+                        DB::table('product_resource')->insert(['product_id' => $product_id, 'resource_id' => $resource->resource_id, 'is_index' => $resource->is_index, 'sort' => $resource->sort]);
+                    }
+                }
+                DB::commit();
+                return code_response(10, '修改产品资源成功！');
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return code_response(50001, '修改产品资源失败！');
+            }
+        }
+    }
+
+    public function del_resources(Request $request)
+    {
+        $product_id = $request->input('id');
+        $product_resources = json_decode($request->input('product_resource_ids'));
+        if ($product_resources) {
+            try {
+                DB::beginTransaction();
+                foreach ($product_resources as $resource) {
+                    DB::table('product_resource')->where('product_id', $product_id)->where('resource_id', $resource)->delete();
+                }
+                DB::commit();
+                return code_response(10, '删除产品资源成功！');
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return code_response(50001, '删除产品资源失败！');
+            }
+        }
+    }
+
     public function add_variant(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -408,19 +450,125 @@ class ProductController extends Controller
     {
         $tag_ids = json_decode($request->input('tag_ids'));
         $id = $request->input('id');
-        if ($tag_ids){
-            try{
+        if ($tag_ids) {
+            try {
                 DB::beginTransaction();
-                foreach ($tag_ids as $tag_id){
+                foreach ($tag_ids as $tag_id) {
                     DB::table('product_tag')->where('product_id', $id)->where('tag_id', $tag_id)->delete();
                 }
                 DB::commit();
-            }catch (\Exception $e){
+            } catch (\Exception $e) {
                 DB::rollBack();
                 return code_response(20213, $e->getMessage());
             }
         }
         return code_response(10, '删除产品标签成功！');
+    }
+
+    public function get_products_by_conditions(Request $request)
+    {
+        $site_id = $request->input('site_id', 0);
+        $pre_page = $request->input('pre_page', 15);
+        $page = $request->input('page', 1);
+        $conditions = json_decode($request->input('conditions'), true);
+        $products = DB::table('products as p')->join('product_types as pt', 'p.type', '=', 'pt.id', 'left')
+            ->join('suppliers as s', 's.product_id', '=', 'p.id', 'left')
+            ->join('product_tag as pg', 'p.id', '=', 'pg.product_id', 'left')
+            ->join('tags as t', 't.id', '=', 'pg.tag_id', 'left')->where('p.site_id', $site_id);
+        if ($conditions) {
+            $match = $conditions['match'];
+            $in_values = [];
+            $not_in_values = [];
+            foreach ($conditions['conditions'] as $key => $condition) {
+                if ($condition['key'] == 'tag') {
+                    if ($condition['term'] == '()') {
+                        $in_values[] = $condition['value'];
+                    } elseif ($condition['term'] == ')(') {
+                        $not_in_values[] = $condition['value'];
+                    }
+                    unset($conditions['conditions'][$key]);
+                }
+            }
+            if ($in_values) {
+                $conditions['conditions'][] = ['key' => 'tag', 'term' => '()', 'value' => $in_values];
+            }
+            if ($not_in_values) {
+                $conditions['conditions'][] = ['key' => 'tag', 'term' => ')(', 'value' =>$not_in_values];
+            }
+            $products->where(function ($query) use ($conditions, $match) {
+                foreach ($conditions['conditions'] as $condition) {
+                    if ($condition['key'] == 'type') {
+                        $key = 'pt.name';
+                    } elseif ($condition['key'] == 'supplier') {
+                        $key = 's.url';
+                    } elseif ($condition['key'] == 'tag') {
+                        $key = 't.name';
+                    } else {
+                        $key = 'p.' . $condition['key'];
+                    }
+                    if ($match == 'all') {
+                        if ($condition['term'] == '..%') {
+                            $query->where($key, 'like', $condition['value'] . '%');
+                        } elseif ($condition['term'] == '%..') {
+                            $query->where($key, 'like', '%' . $condition['value']);
+                        } elseif ($condition['term'] == '()') {
+                            $query->whereIn($key, $condition['value']);
+                        } elseif ($condition['term'] == ')(') {
+                            $query->whereNotIn($key, $condition['value']);
+                        } else {
+                            $query->where($key, $condition['term'], $condition['value']);
+                        }
+                    } else {
+                        if ($condition['term'] == '..%') {
+                            $query->orWhere($key, 'like', $condition['value'] . '%');
+                        } elseif ($condition['term'] == '%..') {
+                            $query->orWhere($key, 'like', '%' . $condition['value']);
+                        } elseif ($condition['term'] == '()') {
+                            $value = $condition['value'];
+                            $query->orWhere(function ($query) use ($key, $value) {
+                                $query->whereIn($key, $value);
+                            });
+                        } elseif ($condition['term'] == ')(') {
+                            $value = $condition['value'];
+                            $query->orWhere(function ($query) use ($key, $value) {
+                                $query->whereNotIn($key, $value);
+                            });
+                        } else {
+                            $query->orWhere($key, $condition['term'], $condition['value']);
+                        }
+                    }
+                }
+            });
+        }
+        $products = $products->select('p.*')->groupBy('p.id')->paginate($pre_page);
+        return code_response(10, '获取成功！', 200, ['data' => $products]);
+    }
+
+    private function get_condition($condition, $products)
+    {
+        $key = '';
+        $term = '';
+        if ($condition['key'] == 'type') {
+            $key = 'pt.name';
+        } elseif ($condition['key'] == 'supplier') {
+            $key = 's.url';
+        } elseif ($condition['key'] == 'tag') {
+            $key = 'pg.name';
+        } else {
+            $key = 'p.' . $condition['key'];
+        }
+        if ($condition['term'] == '..%') {
+            $products->where($key, 'like', $condition['value'] . '%');
+        } elseif ($condition['term'] == '%..') {
+            $products->where($key, 'like', $condition['value'] . '%');
+        } elseif ($condition['term'] == '()') {
+            $products->whereIn($key, $condition['value']);
+        } elseif ($condition['term'] == ')(') {
+            $products->whereNotIn($key, $condition['value']);
+        } else {
+            $products->where($key, $condition['term'], $condition['value']);
+        }
+        return $products;
     }
 
     private function check_attribute_values($attribute_values)

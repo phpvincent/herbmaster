@@ -75,6 +75,9 @@ Route::namespace('Admin')->group(function(){
             Route::delete('supplier/delete', 'SupplierController@destory');
             Route::put('supplier/edit', 'SupplierController@edit');
             Route::get('product_type/all', 'ProductTypeController@index');
+            Route::put('product/resources/edit', 'ProductController@edit_resources');
+            Route::delete('product/resources/delete', 'ProductController@del_resources');
+            Route::get('product/by_conditions', 'ProductController@get_products_by_conditions');
             //标签
             Route::post('tag/add', 'TagController@add');
             Route::get('tag/index', 'TagController@index');
