@@ -87,6 +87,10 @@ Route::namespace('Admin')->group(function(){
             Route::get('inventory/index', 'InventoryController@index');
             Route::get('inventory/show', 'InventoryController@show');
             Route::put('inventory/edit', 'InventoryController@edit');
+            //站点
+            Route::get('site/index', 'SiteController@index');
+            Route::get('site/get_site_info', 'SiteController@get_site_info');
+            Route::put('site/update', 'SiteController@update');
     });
 //    });
 

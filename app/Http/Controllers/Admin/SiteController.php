@@ -16,6 +16,18 @@ class SiteController extends Controller
     }
     public function update(Request $request)
     {
-    		
+    	$site_id=$request->input('site_id',null);
+        if($site_id==null||(int)$site_id!=$site_id) return code_response(20801, 'site_id not allowed');
+        $site=Site::::where('id',$request->input('collections_id'))->first();
+        if($site==null) return code_response(20802, 'site data not found');
+        $msg=$Collection->update($request->only($Collection->fillable));
+        if($msg==false) return code_response(20803, 'site update failed');
+    }
+    public function get_site_info(Request $request)
+    {
+        $site_id=$request->input('site_id',null);
+        if($site_id==null||(int)$site_id!=$site_id) return code_response(20804, 'site_id not allowed');
+        $site=Site::::where('id',$request->input('collections_id'))->first();
+        if($site==null) return code_response(20805, 'site data not found');
     }
 }
