@@ -30,8 +30,6 @@ class SiteController extends Controller
         $site=Site::::where('id',$request->input('collections_id'))->first();
         if($site==null) return code_response(20805, 'site data not found');
     }
-<<<<<<< HEAD
-=======
     public function domain_site(Request $request)
     {
 
@@ -45,5 +43,7 @@ class SiteController extends Controller
         
     }
     private function insert_helper()
->>>>>>> site
+    {
+        
+    }
 }
