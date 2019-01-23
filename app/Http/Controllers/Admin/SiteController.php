@@ -30,4 +30,20 @@ class SiteController extends Controller
         $site=Site::::where('id',$request->input('collections_id'))->first();
         if($site==null) return code_response(20805, 'site data not found');
     }
+<<<<<<< HEAD
+=======
+    public function domain_site(Request $request)
+    {
+
+    }
+    public function site_add(Request $request)
+    {
+        $require_columns=['name','title','is_open','lock_prompt','secret','theme','email','order_prefix','currency_id','time_difference','payment_ids','fill_checkout_info','abandoned_checkout_email_time_delay']
+        $check=check_colum($request,$require_columns);
+        if($check!=null) return code_response(20805, implode(',', $check).' not found');
+        $site=new Site;
+        
+    }
+    private function insert_helper()
+>>>>>>> site
 }
