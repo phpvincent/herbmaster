@@ -87,6 +87,11 @@ Route::namespace('Admin')->group(function(){
             Route::get('inventory/index', 'InventoryController@index');
             Route::get('inventory/show', 'InventoryController@show');
             Route::put('inventory/edit', 'InventoryController@edit');
+
+            //主题
+            Route::get('theme/info', 'ThemeController@info');
+            Route::post('theme/add', 'ThemeController@add');
+            Route::put('theme/edit', 'ThemeController@edit');
     });
 //    });
 

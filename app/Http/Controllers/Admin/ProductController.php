@@ -87,6 +87,36 @@ class ProductController extends Controller
             }
 
         }
+        $product = Product::find(3);
+        if ($attribute_options) {
+            $product_attribute_list = [];
+            foreach ($attribute_options as $options) {
+                foreach ($options->values as $value) {
+                    if (ProductAttributeList::where('product_id', $product->id)->where('attribute_id', $options->attribute)->where('attribute_value', $value->attribute_value)->exists()) {
+                        continue;
+                    }
+                    $option = new ProductAttributeList();
+                    $option->attribute_id = 1;
+                    $option->product_id = $product->id;
+                    $option->attribute_value = $value->attribute_value;
+                    $option->attribute_english_value = $value->attribute_english_value;
+                    $option->save();
+                    $product_attribute_list[$options->attribute . '-' . $value->attribute_value] = $option->id;
+                }
+            }
+        }
+        if ($product_attributes) {
+            foreach ($product_attributes as $attribute) {
+                $product_attribute = new ProductAttribute();
+                $product_attribute->product_id = $product->id;
+                $product_attribute->attribute_list_ids = $this->get_product_attribute_ids($attribute->attributes, $product_attribute_list);
+                $product_attribute->price = isset($attribute->price) ? $attribute->price :$product->price;
+                $product_attribute->sku = $this->set_sku($product, $attribute->sku);
+                $product_attribute->bar_code = isset($attribute->bar_code) ? $attribute->bar_code : $product->bar_code;
+                $product_attribute->num = isset($attribute->num) ? $attribute->num : $product->num;
+                $product_attribute->save();
+            }
+        }
         try {
             DB::beginTransaction();
             $product = new Product();
@@ -109,18 +139,18 @@ class ProductController extends Controller
                 //添加属性信息
                 if ($attribute_options) {
                     $product_attribute_list = [];
-                    foreach ($attribute_options as $attribute_id => $options) {
-                        foreach ($options as $value) {
-                            if (ProductAttributeList::where('product_id', $product->id)->where('attribute_id', $attribute_id)->where('attribute_value', $value->attribute_value)->exists()) {
+                    foreach ($attribute_options as $options) {
+                        foreach ($options->values as $value) {
+                            if (ProductAttributeList::where('product_id', $product->id)->where('attribute_id', $options->attribute)->where('attribute_value', $value->attribute_value)->exists()) {
                                 continue;
                             }
-                            $options = new ProductAttributeList();
-                            $options->attribute_id = $attribute_id;
-                            $options->product_id = $product->id;
-                            $options->attribute_value = $value->attribute_value;
-                            $options->attribute_english_value = $value->attribute_english_value;
-                            $options->save();
-                            $product_attribute_list[$attribute_id . '-' . $value->attribute_value] = $options->id;
+                            $option = new ProductAttributeList();
+                            $option->attribute_id = $options->attribute;
+                            $option->product_id = $product->id;
+                            $option->attribute_value = $value->attribute_value;
+                            $option->attribute_english_value = $value->attribute_english_value;
+                            $option->save();
+                            $product_attribute_list[$options->attribute . '-' . $value->attribute_value] = $option->id;
                         }
                     }
                 }
@@ -129,7 +159,7 @@ class ProductController extends Controller
                     foreach ($product_attributes as $attribute) {
                         $product_attribute = new ProductAttribute();
                         $product_attribute->product_id = $product->id;
-                        $product_attribute->attribute_list_ids = $this->get_product_attribute_ids($attribute, $product_attribute_list);
+                        $product_attribute->attribute_list_ids = $this->get_product_attribute_ids($attribute->attributes, $product_attribute_list);
                         $product_attribute->price = isset($attribute->price) ? $attribute->price : $product->price;
                         $product_attribute->sku = $this->set_sku($product, $attribute->sku);
                         $product_attribute->bar_code = isset($attribute->bar_code) ? $attribute->bar_code : $product->bar_code;
@@ -401,15 +431,15 @@ class ProductController extends Controller
         $attribute_ids = [];
         try {
             DB::beginTransaction();
-            foreach ($options as $attribute_id => $items) {
-                $attribute_ids[] = $attribute_id;
-                foreach ($items as $option) {
-                    if (ProductAttributeList::where('product_id', $request->input('product_id'))->where('attribute_id', $attribute_id)->where('attribute_value', $option->attribute_value)->exists()) {
+            foreach ($options as $items) {
+                $attribute_ids[] = $items->attribute;
+                foreach ($items->values as $option) {
+                    if (ProductAttributeList::where('product_id', $request->input('product_id'))->where('attribute_id', $items->attribute)->where('attribute_value', $option->attribute_value)->exists()) {
                         continue;
                     }
                     $product_attribute_list = new ProductAttributeList();
                     $product_attribute_list->product_id = $request->input('product_id');
-                    $product_attribute_list->attribute_id = $attribute_id;
+                    $product_attribute_list->attribute_id = $items->attribute;
                     $product_attribute_list->attribute_value = $option->attribute_value;
                     $product_attribute_list->attribute_english_value = $option->attribute_english_value;
                     $product_attribute_list->save();
@@ -540,44 +570,22 @@ class ProductController extends Controller
                 }
             });
         }
-        $products = $products->select('p.*')->groupBy('p.id')->paginate($pre_page);
+        $products = $products->select('p.id','p.name','p.english_name')->groupBy('p.id')->paginate($pre_page);
+        if($products){
+            foreach ($products as $product){
+                $product->image = Product::with('index_thumb')->find($product->id);
+            }
+        }
         return code_response(10, '获取成功！', 200, ['data' => $products]);
-    }
-
-    private function get_condition($condition, $products)
-    {
-        $key = '';
-        $term = '';
-        if ($condition['key'] == 'type') {
-            $key = 'pt.name';
-        } elseif ($condition['key'] == 'supplier') {
-            $key = 's.url';
-        } elseif ($condition['key'] == 'tag') {
-            $key = 'pg.name';
-        } else {
-            $key = 'p.' . $condition['key'];
-        }
-        if ($condition['term'] == '..%') {
-            $products->where($key, 'like', $condition['value'] . '%');
-        } elseif ($condition['term'] == '%..') {
-            $products->where($key, 'like', $condition['value'] . '%');
-        } elseif ($condition['term'] == '()') {
-            $products->whereIn($key, $condition['value']);
-        } elseif ($condition['term'] == ')(') {
-            $products->whereNotIn($key, $condition['value']);
-        } else {
-            $products->where($key, $condition['term'], $condition['value']);
-        }
-        return $products;
     }
 
     private function check_attribute_values($attribute_values)
     {
-        foreach ($attribute_values as $attribute_id => $options) {
-            if (!Attribute::where('id', $attribute_id)->exists()) {
+        foreach ($attribute_values as $options) {
+            if (!Attribute::where('id', $options->attribute)->exists()) {
                 return ['code' => 0, 'msg' => '该属性不存在！'];
             }
-            foreach ($options as $value) {
+            foreach ($options->values as $value) {
                 if (!isset($value->attribute_value) || !isset($value->attribute_english_value)) {
                     return ['code' => 0, 'msg' => '属性值及英文属性值均不能为空!'];
                 }
@@ -608,8 +616,8 @@ class ProductController extends Controller
     {
         $ids = [];
         foreach ($attributes as $key => $value) {
-            if (isset($product_attribute_list[$key . '_' . $value])) {
-                $ids[] = $product_attribute_list[$key . '_' . $value];
+            if (isset($product_attribute_list[$value->key . '_' . $value->value])) {
+                $ids[] = $product_attribute_list[$value->key . '_' . $value->value];
             }
         }
         return implode(',', $ids);
