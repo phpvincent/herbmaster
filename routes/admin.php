@@ -92,6 +92,10 @@ Route::namespace('Admin')->group(function(){
             Route::get('theme/info', 'ThemeController@info');
             Route::post('theme/add', 'ThemeController@add');
             Route::put('theme/edit', 'ThemeController@edit');
+            //站点
+            Route::get('site/index', 'SiteController@index');
+            Route::get('site/get_site_info', 'SiteController@get_site_info');
+            Route::put('site/update', 'SiteController@update');
     });
 //    });
 
