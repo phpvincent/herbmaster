@@ -66,7 +66,7 @@ class CollectionController extends Controller
                 }
             }else{
                 $sort_type=$collection->get_sort_type()['sort_type'];
-                $asc=$collection->get_sort_type()['asc']
+                $asc=$collection->get_sort_type()['asc'];
                 $sort_art='collections_products.sort';
                 $asc='desc';
             }
