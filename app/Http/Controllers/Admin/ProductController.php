@@ -87,36 +87,6 @@ class ProductController extends Controller
             }
 
         }
-        $product = Product::find(3);
-        if ($attribute_options) {
-            $product_attribute_list = [];
-            foreach ($attribute_options as $options) {
-                foreach ($options->values as $value) {
-                    if (ProductAttributeList::where('product_id', $product->id)->where('attribute_id', $options->attribute)->where('attribute_value', $value->attribute_value)->exists()) {
-                        continue;
-                    }
-                    $option = new ProductAttributeList();
-                    $option->attribute_id = 1;
-                    $option->product_id = $product->id;
-                    $option->attribute_value = $value->attribute_value;
-                    $option->attribute_english_value = $value->attribute_english_value;
-                    $option->save();
-                    $product_attribute_list[$options->attribute . '-' . $value->attribute_value] = $option->id;
-                }
-            }
-        }
-        if ($product_attributes) {
-            foreach ($product_attributes as $attribute) {
-                $product_attribute = new ProductAttribute();
-                $product_attribute->product_id = $product->id;
-                $product_attribute->attribute_list_ids = $this->get_product_attribute_ids($attribute->attributes, $product_attribute_list);
-                $product_attribute->price = isset($attribute->price) ? $attribute->price :$product->price;
-                $product_attribute->sku = $this->set_sku($product, $attribute->sku);
-                $product_attribute->bar_code = isset($attribute->bar_code) ? $attribute->bar_code : $product->bar_code;
-                $product_attribute->num = isset($attribute->num) ? $attribute->num : $product->num;
-                $product_attribute->save();
-            }
-        }
         try {
             DB::beginTransaction();
             $product = new Product();
