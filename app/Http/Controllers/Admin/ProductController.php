@@ -295,7 +295,7 @@ class ProductController extends Controller
             return code_response(10001, $validator->errors()->first());
         }
         $sku = $this->set_sku(Product::find($request->input('product_id')), $request->input('sku'));
-        if (ProductAttribute::where('product_id', $request->input('product_id'))->where('sku', $sku)->exist()) {
+        if (ProductAttribute::where('product_id', $request->input('product_id'))->where('sku', $sku)->exists()) {
             return code_response(10002, 'sku必须唯一！');
         }
 //        if (! $request->has('attribute_list')) {
@@ -345,7 +345,7 @@ class ProductController extends Controller
             return code_response(10001, $validator->errors()->first());
         }
         $sku = $request->input('sku');
-        if (ProductAttribute::where('product_id', $request->input('product_id'))->where('sku', $sku)->exist()) {
+        if (ProductAttribute::where('product_id', $request->input('product_id'))->where('sku', $sku)->exists()) {
             return code_response(10002, 'sku必须唯一！');
         }
 //        if (! $request->has('attribute_list')) {
