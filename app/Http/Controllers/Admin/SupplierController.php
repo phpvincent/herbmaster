@@ -16,11 +16,11 @@ class SupplierController extends Controller
         }
         $supplier = Supplier::find($request->input('supplier_id'));
         $supplier->url = $request->input('supplier_url');
-        $supplier->contact = $request->input('supplier_contact', '');
-        $supplier->phone = $request->input('supplier_phone', '');
+        $supplier->contact = $request->input('supplier_contact', '') == null ? '' : $request->input('supplier_contact');
+        $supplier->phone = $request->input('supplier_phone', '')  == null ? '' : $request->input('supplier_phone', '');
         $supplier->price = floatval($request->input('supplier_price', 0));
         $supplier->num = intval($request->input('supplier_num', 0));
-        $supplier->remark = $request->input('supplier_remark', '');
+        $supplier->remark = $request->input('supplier_remark', '')  == null ? '' : $request->input('supplier_remark', '');
         if($supplier->save()){
             return code_response(10, '修改供货商信息成功！', 200, ['data'=>$supplier]);
         }else{

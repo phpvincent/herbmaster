@@ -9,4 +9,5 @@ class Supplier extends Model
     protected $table = 'suppliers';
     protected $primaryKey = 'id';
     public $timestamps = true;
+
 }

@@ -105,6 +105,8 @@ class ProductController extends Controller
             $product->collection_id = $request->input('collection_id');
             $product->admin_id = Auth::guard('admin')->id();
             $product->status = $request->input('status');
+            $product->sku = $request->input('sku', '');
+            $product->bar_code = $request->input('bar_code', '');
             if ($product->save()) {
                 //添加属性信息
                 if ($attribute_options) {
@@ -120,7 +122,7 @@ class ProductController extends Controller
                             $option->attribute_value = $value->attribute_value;
                             $option->attribute_english_value = $value->attribute_english_value;
                             $option->save();
-                            $product_attribute_list[$options->attribute . '-' . $value->attribute_value] = $option->id;
+                            $product_attribute_list[$options->attribute . '_' . $value->attribute_value] = $option->id;
                         }
                     }
                 }
@@ -151,11 +153,11 @@ class ProductController extends Controller
                     $supplier = new  Supplier();
                     $supplier->product_id = $product->id;
                     $supplier->url = $request->input('supplier_url');
-                    $supplier->contact = $request->input('supplier_contact', '');
-                    $supplier->phone = $request->input('supplier_phone', '');
+                    $supplier->contact = $request->input('supplier_contact', '') == null ? '' : $request->input('supplier_contact');
+                    $supplier->phone = $request->input('supplier_phone', '') == null ? '' : $request->input('supplier_phone');
                     $supplier->price = $request->input('supplier_price', 0);
                     $supplier->num = $request->input('supplier_num', 0);
-                    $supplier->remark = $request->input('supplier_remark', '');
+                    $supplier->remark = $request->input('supplier_remark', '') == null ? '' : $request->input('supplier_remark');
                     $supplier->save();
                 }
 
@@ -232,6 +234,8 @@ class ProductController extends Controller
         $product->collection_id = $request->input('collection_id');
         $product->admin_id = Auth::guard('admin')->id();
         $product->status = $request->input('status');
+        $product->sku = $request->input('sku', '');
+        $product->bar_code = $request->input('bar_code', '');
         if ($product->save()) {
             return code_response(10, '修改产品成功！', 200, ['data' => $product]);
         } else {
@@ -325,7 +329,7 @@ class ProductController extends Controller
         $product_attribute->bar_code = $request->input('bar_code');
         $product_attribute->num = $request->input('num');
         if ($product_attribute->save()) {
-            return code_response(10, '添加产品变种成功！', 200, ['data' => $product_attribute]);
+            return code_response(10, '添加产品变种成功！', 200, ['data' => ['variant' => $product_attribute, 'attribute_options' => Product::attribute_values($request->input('product_id'))]]);
         } else {
             return code_response(50001, '修改产品变种失败！');
         }
@@ -355,7 +359,7 @@ class ProductController extends Controller
         $ids = [];
         $product_attribute = ProductAttribute::find($request->input('id'));
         foreach ($attribute_list as $key => $value) {
-            $id = ProductAttributeList::where('product_id', $request->input('product_id'))->where('attribute_id', $key)->where('attribute_value', $value->attribute_value)->value('id');
+            $id = ProductAttributeList::where('product_id', $product_attribute->product_id)->where('attribute_id', $key)->where('attribute_value', $value->attribute_value)->value('id');
             if (!$id) {
                 $product_attribute_list = new ProductAttributeList();
                 $product_attribute_list->product_id = $product_attribute->product_id;
@@ -375,7 +379,7 @@ class ProductController extends Controller
         $product_attribute->bar_code = $request->input('bar_code');
         $product_attribute->num = $request->input('num');
         if ($product_attribute->save()) {
-            return code_response(10, '修改产品变种成功！', 200, ['data' => $product_attribute]);
+            return code_response(10, '修改产品变种成功！', 200, ['data' => ['variant' => $product_attribute, 'attribute_options' => Product::attribute_values($product_attribute->product_id)]]);
         } else {
             return code_response(50001, '修改产品变种失败！');
         }
@@ -439,7 +443,7 @@ class ProductController extends Controller
     public function info(Request $request)
     {
         $id = $request->input('id', 0);
-        $product = Product::with('resources', 'attributes', 'suppliers', 'collections')->find($id);
+        $product = Product::with('resources', 'attributes', 'suppliers', 'collections', 'tags')->find($id);
         $product->type_name = ProductType::where('id', $product->type)->value('name');
         $product->attribute_options = Product::attribute_values($id);
         $product->product_attributes = Product::product_attribute_list($id);
