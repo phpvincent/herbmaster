@@ -72,6 +72,7 @@ Route::namespace('Admin')->group(function(){
             Route::put('product/variant/edit', 'ProductController@edit_variant');
             Route::post('product/option/add', 'ProductController@add_option');
             Route::delete('product/tag/delete', 'ProductController@delete_tags');
+            Route::put('product/tag/edit', 'ProductController@edit_tags');
             Route::delete('supplier/delete', 'SupplierController@destory');
             Route::put('supplier/edit', 'SupplierController@edit');
             Route::get('product_type/all', 'ProductTypeController@index');

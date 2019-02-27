@@ -264,6 +264,7 @@ class ProductController extends Controller
                 return code_response(50001, '修改产品资源失败！');
             }
         }
+        return code_response(10, '修改产品资源成功！');
     }
 
     public function del_resources(Request $request)
@@ -283,6 +284,7 @@ class ProductController extends Controller
                 return code_response(50001, '删除产品资源失败！');
             }
         }
+        return code_response(10, '删除产品资源成功！');
     }
 
     public function add_variant(Request $request)
@@ -450,6 +452,33 @@ class ProductController extends Controller
         return code_response(10, '获取产品信息成功！', 200, ['data' => $product]);
     }
 
+    public function edit_tags(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'product_id' => 'required|integer|exists:products,id',
+        ]);
+        if ($validator->fails()) {
+            return code_response(10001, $validator->errors()->first());
+        }
+        $product_tags = json_decode($request->input('product_tags'));
+        if ($product_tags){
+            try {
+                DB::beginTransaction();
+                foreach ($product_tags as $product_tag) {
+                    if (!DB::table('product_tag')->where('product_id', $request->input('product_id'))->where('tag_id', $product_tag)->exists()) {
+                        DB::table('product_tag')->insert(['product_id' => $request->input('product_id'), 'tag_id' => $product_tag]);
+                    }
+                }
+                DB::commit();
+                return code_response(10, '修改产品标签成功！');
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return code_response(50001, '修改产品标签失败！');
+            }
+        }
+        return code_response(10, '修改产品标签成功！');
+    }
+
     public function delete_tags(Request $request)
     {
         $tag_ids = json_decode($request->input('tag_ids'));
@@ -497,7 +526,7 @@ class ProductController extends Controller
                 $conditions['conditions'][] = ['key' => 'tag', 'term' => '()', 'value' => $in_values];
             }
             if ($not_in_values) {
-                $conditions['conditions'][] = ['key' => 'tag', 'term' => ')(', 'value' =>$not_in_values];
+                $conditions['conditions'][] = ['key' => 'tag', 'term' => ')(', 'value' => $not_in_values];
             }
             $products->where(function ($query) use ($conditions, $match) {
                 foreach ($conditions['conditions'] as $condition) {
@@ -544,9 +573,9 @@ class ProductController extends Controller
                 }
             });
         }
-        $products = $products->select('p.id','p.name','p.english_name')->groupBy('p.id')->paginate($pre_page);
-        if($products){
-            foreach ($products as $product){
+        $products = $products->select('p.id', 'p.name', 'p.english_name')->groupBy('p.id')->paginate($pre_page);
+        if ($products) {
+            foreach ($products as $product) {
                 $product->image = Product::with('index_thumb')->find($product->id);
             }
         }
