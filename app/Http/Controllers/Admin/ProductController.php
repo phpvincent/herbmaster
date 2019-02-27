@@ -171,21 +171,21 @@ class ProductController extends Controller
                     }
                 }
                 //添加集合
-                if ($request->has('product_collections') && !empty($request->input('product_collections'))) {
-                    $product_collections = json_decode($request->input('product_collections'));
-                    if ($product_collections) {
-                        foreach ($product_collections as $product_collection) {
-                            DB::table('collections_products')->insert([
-                                'products_id' => $product->id,
-                                'collections_id' => $product_collection->collection_id,
-                                'remark' => $product_collection->remark,
-                                'sort' => $product_collection->sort,
-                                'created_at' => Carbon::now(),
-                                'updated_at' => Carbon::now(),
-                            ]);
-                        }
-                    }
-                }
+//                if ($request->has('product_collections') && !empty($request->input('product_collections'))) {
+//                    $product_collections = json_decode($request->input('product_collections'));
+//                    if ($product_collections) {
+//                        foreach ($product_collections as $product_collection) {
+//                            DB::table('collections_products')->insert([
+//                                'products_id' => $product->id,
+//                                'collections_id' => $product_collection->collection_id,
+//                                'remark' => $product_collection->remark,
+//                                'sort' => $product_collection->sort,
+//                                'created_at' => Carbon::now(),
+//                                'updated_at' => Carbon::now(),
+//                            ]);
+//                        }
+//                    }
+//                }
             }
             DB::commit();
         } catch (\Exception $e) {
@@ -482,7 +482,7 @@ class ProductController extends Controller
     public function delete_tags(Request $request)
     {
         $tag_ids = json_decode($request->input('tag_ids'));
-        $id = $request->input('id');
+        $id = $request->input('product_id');
         if ($tag_ids) {
             try {
                 DB::beginTransaction();
@@ -575,13 +575,14 @@ class ProductController extends Controller
         }
         $products = $products->select('p.id', 'p.name')->groupBy('p.id');
         if($request->input('is_paginate', 0)){
-            $products->paginate($pre_page);
+            $products = $products->select('p.id', 'p.name')->groupBy('p.id')->paginate($pre_page);
         }else{
-            $products->get();
+            $products = $products->select('p.id', 'p.name')->groupBy('p.id')->get();
         }
         if ($products) {
             foreach ($products as $product) {
-                $product->image = Product::with('index_thumb')->find($product->id);
+                $product->image = DB::table('resources as r')->join('product_resource as pr', 'r.id', '=', 'pr.resource_id', 'left')
+                    ->where('pr.product_id', $product->id)->where('pr.is_index', 1)->value('r.thum_path');
             }
         }
         return code_response(10, '获取成功！', 200, ['data' => $products]);
