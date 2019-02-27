@@ -573,7 +573,12 @@ class ProductController extends Controller
                 }
             });
         }
-        $products = $products->select('p.id', 'p.name', 'p.english_name')->groupBy('p.id')->paginate($pre_page);
+        $products = $products->select('p.id', 'p.name')->groupBy('p.id');
+        if($request->input('is_paginate', 0)){
+            $products->paginate($pre_page);
+        }else{
+            $products->get();
+        }
         if ($products) {
             foreach ($products as $product) {
                 $product->image = Product::with('index_thumb')->find($product->id);
