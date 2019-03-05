@@ -13,9 +13,11 @@ class AddSortTypeToCollectionsTable extends Migration
      */
     public function up()
     {
-        Schema::table('collections', function (Blueprint $table) {
-                $table->string('sort_type',198)->index()->default(0)->after('status')->comment('0：sort字段正序,1:sort字段倒序,2:产品上线时间正序，3：产品上线时间倒序，4：产品价格正序，5：产品价格倒序，6：产品库存正序，7：产品库存倒序');
-        });
+        if(!Schema::hasColumn('collections', 'sort_type')) {
+            Schema::table('collections', function (Blueprint $table) {
+                $table->string('sort_type', 198)->index()->default(0)->after('status')->comment('0：sort字段正序,1:sort字段倒序,2:产品上线时间正序，3：产品上线时间倒序，4：产品价格正序，5：产品价格倒序，6：产品库存正序，7：产品库存倒序');
+            });
+        }
     }
 
     /**
@@ -25,8 +27,10 @@ class AddSortTypeToCollectionsTable extends Migration
      */
     public function down()
     {
-        Schema::table('collections', function (Blueprint $table) {
+        if(Schema::hasColumn('collections', 'sort_type')) {
+            Schema::table('collections', function (Blueprint $table) {
                 $table->dropColumn('sort_type');
-        });
+            });
+        }
     }
 }

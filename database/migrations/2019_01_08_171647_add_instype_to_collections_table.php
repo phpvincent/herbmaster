@@ -13,9 +13,12 @@ class AddInstypeToCollectionsTable extends Migration
      */
     public function up()
     {
-        Schema::table('collections', function (Blueprint $table) {
+        if(!Schema::hasColumn('collections', 'instype')){
+            Schema::table('collections', function (Blueprint $table) {
                 $table->integer('instype')->index()->default(0)->after('status')->comment('0：手动选择产品，1：自动选择产品');
-        });
+            });
+        }
+
     }
 
     /**
@@ -25,8 +28,10 @@ class AddInstypeToCollectionsTable extends Migration
      */
     public function down()
     {
-        Schema::table('collections', function (Blueprint $table) {
+        if(Schema::hasColumn('collections', 'instype')) {
+            Schema::table('collections', function (Blueprint $table) {
                 $table->dropColumn('instype');
-        });
+            });
+        }
     }
 }

@@ -13,9 +13,11 @@ class AddAdminIdToSitesTable extends Migration
      */
     public function up()
     {
-        Schema::table('sites', function (Blueprint $table) {
+        if(!Schema::hasColumn('sites', 'admin_id')) {
+            Schema::table('sites', function (Blueprint $table) {
                 $table->integer('admin_id')->index()->after('is_open')->comment('站点建立人员');
-        });
+            });
+        }
     }
 
     /**
@@ -25,8 +27,10 @@ class AddAdminIdToSitesTable extends Migration
      */
     public function down()
     {
-        Schema::table('sites', function (Blueprint $table) {
+        if(Schema::hasColumn('sites', 'admin_id')) {
+            Schema::table('sites', function (Blueprint $table) {
                 $table->dropColumn('admin_id');
-        });
+            });
+        }
     }
 }

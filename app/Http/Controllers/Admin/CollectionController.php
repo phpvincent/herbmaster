@@ -39,7 +39,7 @@ class CollectionController extends Controller
     	$collection=Collection::find($request->input('collections_id'));
     	if($collection==null) return code_response(20202, 'collection not find');
         if($request->input('is_admin',0)==0){
-            if($collection->status!=0||strtotime($collection->start_time)>time()){
+            if($collection->status!=1||strtotime($collection->start_time)>time()){
                 return code_response(20203, 'collection is not using');
             }
         }

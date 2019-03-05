@@ -13,9 +13,11 @@ class AddNameToresourcesTable extends Migration
      */
     public function up()
     {
-        Schema::table('resources', function (Blueprint $table) {
-           $table->string('name',198)->index()->comment('资源文件名');
-        });
+        if(!Schema::hasColumn('resources', 'name')) {
+            Schema::table('resources', function (Blueprint $table) {
+                $table->string('name', 198)->index()->comment('资源文件名');
+            });
+        }
     }
 
     /**
@@ -25,8 +27,10 @@ class AddNameToresourcesTable extends Migration
      */
     public function down()
     {
-        Schema::table('resources', function (Blueprint $table) {
+        if(Schema::hasColumn('resources', 'name')) {
+            Schema::table('resources', function (Blueprint $table) {
                 $table->dropColumn('name');
-        });
+            });
+        }
     }
 }

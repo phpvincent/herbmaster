@@ -61,7 +61,7 @@ class ProductController extends Controller
             'is_physical_product' => 'required|in:0,1',
             'weight' => 'required|numeric',
             'type' => 'required|exists:product_types,id',
-            'collection_id' => 'required|integer',
+//            'collection_id' => 'required|integer',
             'status' => 'required|in:0,1'
         ]);
         if ($validator->fails()) {
@@ -102,7 +102,7 @@ class ProductController extends Controller
             $product->is_physical_product = $request->input('is_physical_product');
             $product->weight = $request->input('weight');
             $product->type = $request->input('type');
-            $product->collection_id = $request->input('collection_id');
+//            $product->collection_id = $request->input('collection_id');
             $product->admin_id = Auth::guard('admin')->id();
             $product->status = $request->input('status');
             $product->sku = $request->input('sku', '');
@@ -213,7 +213,7 @@ class ProductController extends Controller
             'is_physical_product' => 'required|in:0,1',
             'weight' => 'required|numeric',
             'type' => 'required|exists:product_types,id',
-            'collection_id' => 'required|integer',
+//            'collection_id' => 'required|integer',
             'status' => 'required|in:0,1'
         ]);
         if ($validator->fails()) {
@@ -231,7 +231,7 @@ class ProductController extends Controller
         $product->is_physical_product = $request->input('is_physical_product');
         $product->weight = $request->input('weight');
         $product->type = $request->input('type');
-        $product->collection_id = $request->input('collection_id');
+//        $product->collection_id = $request->input('collection_id');
         $product->admin_id = Auth::guard('admin')->id();
         $product->status = $request->input('status');
         $product->sku = $request->input('sku', '');
